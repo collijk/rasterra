@@ -1,0 +1,18 @@
+{
+  "template": "https://github.com/collijk/python-package-cookiecutter",
+  "commit": "437dac2d8f1d7e404723d632e38a0e1f56d29337",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "author_name": "James Collins",
+      "author_email": "collijk1@gmail.com",
+      "github_username": "collijk",
+      "project_name": "rasterra",
+      "project_slug": "rasterra",
+      "package_name": "rasterra",
+      "project_short_description": "A sleek, object-oriented interface designed for intuitive raster data manipulation in Python.",
+      "_template": "https://github.com/collijk/python-package-cookiecutter"
+    }
+  },
+  "directory": null
+}
