@@ -154,8 +154,6 @@ class RasterArray:
 
         return RasterArray(out[0], out_transform, self.crs, self.nodata)
 
-
-
     def clip(self, bounds: tuple[float, float, float, float]) -> 'RasterArray':
         """
         Clip the raster to a bounding box.
@@ -190,7 +188,3 @@ class RasterArray:
         )
 
         return RasterArray(out[0], new_transform, self.crs, self.nodata)
-
-
-
-
