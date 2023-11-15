@@ -8,9 +8,13 @@ from ._array import RasterArray
 def read_file(path: str | Path) -> RasterArray:
     """Read a file and return its content as a string."""
     with rasterio.open(path) as f:
-        return RasterArray(
-            f.read(),
-            transform=f.transform,
-            crs=f.crs,
-            nodata=f.nodata,
-        )
+        data = f.read()
+        if f.shape[0] == 1:
+            return RasterArray(
+                data[0],
+                transform=f.transform,
+                crs=f.crs,
+                nodata=f.nodata,
+            )
+        else:
+            raise NotImplementedError("Only single-band rasters are supported.")
