@@ -71,13 +71,13 @@ class RasterArray:
             )
         self._crs = new_crs
 
-    def to_crs(self, new_crs: str, resampling: str = "nearest") -> None:
+    def to_crs(self, new_crs: str, resampling: str = "nearest") -> "RasterArray":
         """Reproject the raster to a new coordinate reference system."""
         if self._crs is None:
             raise ValueError("Coordinate reference system is not set.")
         resampling = _RESAMPLING_MAP[resampling]
 
-        transform, new_data = reproject(
+        new_data, transform = reproject(
             source=self._data,
             src_transform=self._transform,
             src_crs=self._crs,
@@ -85,9 +85,7 @@ class RasterArray:
             dst_crs=new_crs,
             resampling=resampling,
         )
-        self._transform = transform
-        self._data = new_data
-        self._crs = new_crs
+        return RasterArray(new_data, transform, new_crs, nodata=self._nodata)
 
     @property
     def nodata(self) -> Union[int, float, None]:
