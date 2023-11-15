@@ -85,7 +85,7 @@ class RasterArray:
             dst_crs=new_crs,
             resampling=resampling,
         )
-        return RasterArray(new_data, transform, new_crs, nodata=self._nodata)
+        return RasterArray(new_data[0], transform, new_crs, nodata=self._nodata)
 
     @property
     def nodata(self) -> Union[int, float, None]:
