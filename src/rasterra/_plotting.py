@@ -24,9 +24,9 @@ class Plotter:
     ) -> Axes:
         # Contrast stretching by default
         if vmin is None:
-            vmin = np.percentile(self._data, 2)
+            vmin = np.nanpercentile(self._data, 2)
         if vmax is None:
-            vmax = np.percentile(self._data, 98)
+            vmax = np.nanpercentile(self._data, 98)
 
         kwargs["extent"] = plotting_extent(self._data, self._transform)
 
