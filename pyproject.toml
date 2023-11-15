@@ -29,11 +29,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.13"
+python = ">=3.10, <3.13"
 pyproj = "^3.6.0"
 numpy = "^1.26.0"
 affine = "^2.4.0"
 shapely = "^2.0.1"
+click = "*"
 
 [tool.poetry.dev-dependencies]
 autoflake = "*"
@@ -48,6 +49,7 @@ flake8-logging-format = "*"
 isort = "*"
 mkdocstrings = {version = ">=0.18", extras = ["python"]}
 mkdocs-material = "*"
+mkdocs-table-reader-plugin = "*"
 mypy = "*"
 pep8-naming = "*"
 pre-commit = "*"
@@ -63,12 +65,15 @@ tryceratops = "*"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[project.scripts]
+my-cli = "rasterra.cli:main"
+
 [tool.isort]
 profile = "black"
 src_paths = ["src", "tests"]
 
 [tool.black]
-target-version = ["py39", "py310", "py311"]
+target-version = ["py310", "py311", "py312"]
 include = '\.pyi?$'
 
 [tool.pytest.ini_options]
@@ -87,12 +92,25 @@ exclude_lines = [
 ]
 
 [tool.mypy]
-disallow_any_unimported = true
+disallow_any_unimported = false
 disallow_untyped_defs = true
 no_implicit_optional = true
 strict_equality = true
 warn_unused_ignores = true
 warn_redundant_casts = true
-warn_return_any = true
+warn_return_any = false
 check_untyped_defs = true
 show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "affine",
+    "rasterio.*",
+]
+ignore_missing_imports = true
+
+[tool.tryceratops]
+ignore=["TRY003"]
+
+[tool.autoflake]
+ignore-init-module-imports = true
