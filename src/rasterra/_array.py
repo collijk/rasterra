@@ -2,7 +2,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 from affine import Affine
-from rasterio.warp import Resampling, reproject
+from rasterio.warp import Resampling
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
@@ -76,36 +76,3 @@ class RasterArray:
         if self._nodata is not None:
             self._data[self._data == self._nodata] = new_nodata
         self._nodata = new_nodata
-
-    def to_crs(
-        self,
-        new_crs: str,
-        resampling_method: Union[str, Resampling] = "nearest",
-    ) -> "RasterArray":
-        """
-        Reproject the raster to a new coordinate reference system.
-
-        Parameters
-        ----------
-        new_crs
-            The target coordinate reference system.
-        resampling_method
-            Resampling method to use during CRS transformation.
-
-        Returns
-        -------
-        RasterArray
-            A new RasterArray with update coordinate reference system.
-        """
-        if isinstance(resampling_method, str):
-            resampling_method = _RESAMPLING_MAP[resampling_method]
-
-        out, out_transform = reproject(
-            source=self._data,
-            src_transform=self.transform,
-            src_crs=self.crs,
-            dst_crs=new_crs,
-            resampling=resampling_method,
-        )
-
-        return RasterArray(out[0], out_transform, new_crs, self.nodata)
