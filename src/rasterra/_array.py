@@ -4,6 +4,8 @@ import numpy as np
 from affine import Affine
 from rasterio.warp import Resampling
 
+from rasterra._plotting import Plotter
+
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
 
@@ -80,6 +82,10 @@ class RasterArray:
         if self._nodata is not None:
             self._data[self._data == self._nodata] = new_nodata
         self._nodata = new_nodata
+
+    @property
+    def plot(self) -> Plotter:
+        return Plotter(self._data, self.transform)
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
