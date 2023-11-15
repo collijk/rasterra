@@ -9,7 +9,7 @@ def read_file(path: str | Path) -> RasterArray:
     """Read a file and return its content as a string."""
     with rasterio.open(path) as f:
         data = f.read()
-        if f.shape[0] == 1:
+        if data.shape[0] == 1:
             return RasterArray(
                 data[0],
                 transform=f.transform,
