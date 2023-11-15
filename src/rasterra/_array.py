@@ -97,8 +97,20 @@ class RasterArray:
     @nodata.setter
     def nodata(self, new_nodata: Union[int, float]) -> None:
         if self._nodata is not None:
-            self._data[self._data == self._nodata] = new_nodata
+            self._data[self.no_data_mask] = new_nodata
         self._nodata = new_nodata
+
+    @property
+    def no_data_mask(self) -> np.ndarray:
+        """Mask representing no data."""
+        if self._nodata is None:
+            return np.zeros_like(self._data, dtype=bool)
+        elif np.isnan(self._nodata):
+            return np.isnan(self._data)
+        elif np.isinf(self._nodata):
+            return np.isinf(self._data)
+        else:
+            return np.equal(self._data, self._nodata)
 
     @property
     def plot(self) -> Plotter:
@@ -131,8 +143,7 @@ class RasterArray:
 
         new_data = self._data[y_start:y_end, x_start:x_end].copy()
 
-        current_mask = self._data == self._nodata
-        current_mask = current_mask[y_start:y_end, x_start:x_end]
+        current_mask = self.no_data_mask[y_start:y_end, x_start:x_end]
         new_mask = current_mask | shape_mask
 
         if filled:
