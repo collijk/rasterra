@@ -107,7 +107,10 @@ class RasterArray:
         out += "===========\n"
         out += f"dimensions : {self._data.shape[1]}, {self._data.shape[0]} (x, y)\n"
         out += f"resolution : {self.transform.a}, {self.transform.e} (x, y)\n"
-        bounds = ", ".join(str(s) for s in self.bounds)
+        bounds = ", ".join(
+            str(s)
+            for s in [self.bounds[0], self.bounds[2], self.bounds[1], self.bounds[3]]
+        )
         out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
         out += f"crs        : {self._crs}\n"
         out += f"nodata     : {self._nodata}\n"
