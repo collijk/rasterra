@@ -3,7 +3,9 @@ from typing import Union
 import numpy as np
 from affine import Affine
 from rasterio.warp import Resampling, reproject
+from shapely.geometry import MultiPolygon, Polygon
 
+from rasterra._features import raster_geometry_mask
 from rasterra._plotting import Plotter
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
@@ -101,6 +103,42 @@ class RasterArray:
     @property
     def plot(self) -> Plotter:
         return Plotter(self._data, self.transform)
+
+    def mask(
+        self,
+        shapes: list[Union[Polygon, MultiPolygon]],
+        all_touched: bool = False,
+        invert: bool = False,
+        filled: bool = True,
+        crop: bool = False,
+        pad_x: float = 0.0,
+        pad_y: float = 0.0,
+    ) -> "RasterArray":
+        shape_mask, transform, window = raster_geometry_mask(
+            data_transform=self.transform,
+            data_width=self._data.shape[1],
+            data_height=self._data.shape[0],
+            shapes=shapes,
+            all_touched=all_touched,
+            invert=invert,
+            crop=crop,
+            pad_x=pad_x,
+            pad_y=pad_y,
+        )
+
+        x_start, x_end = window.col_off, window.col_off + window.width
+        y_start, y_end = window.row_off, window.row_off + window.height
+
+        new_data = self._data[y_start:y_end, x_start:x_end].copy()
+
+        current_mask = self._data == self._nodata
+        current_mask = current_mask[y_start:y_end, x_start:x_end]
+        new_mask = current_mask | shape_mask
+
+        if filled:
+            new_data[new_mask] = self._nodata
+
+        return RasterArray(new_data, transform, self._crs, nodata=self._nodata)
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
