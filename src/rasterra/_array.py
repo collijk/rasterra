@@ -1,12 +1,15 @@
-from typing import Any, Optional, Union
+from typing import Union
 
 import numpy as np
 from affine import Affine
-from rasterio.warp import Resampling
+from rasterio.warp import Resampling, reproject
 
 from rasterra._plotting import Plotter
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
+
+CRS_IN_TYPE = Union[str, int, dict, None]
+CRS_OUT_TYPE = str
 
 
 class RasterArray:
@@ -14,7 +17,7 @@ class RasterArray:
         self,
         data: np.ndarray,
         transform: Affine = Affine.identity(),
-        crs: Optional[Any] = None,
+        crs: CRS_IN_TYPE = None,
         nodata: Union[int, float, None] = None,
     ):
         """
@@ -57,10 +60,10 @@ class RasterArray:
         """Coordinate reference system."""
         if self._crs is None:
             raise ValueError("Coordinate reference system is not set.")
-        return self._crs
+        return str(self._crs)
 
     @crs.setter
-    def crs(self, new_crs: str) -> None:
+    def crs(self, new_crs: CRS_IN_TYPE) -> None:
         if self._crs is not None:
             raise ValueError(
                 "Coordinate reference system is already set. Use to_crs() to reproject "
@@ -68,9 +71,23 @@ class RasterArray:
             )
         self._crs = new_crs
 
-    def to_crs(self, new_crs: str) -> None:
+    def to_crs(self, new_crs: str, resampling: str = "nearest") -> None:
         """Reproject the raster to a new coordinate reference system."""
-        raise NotImplementedError()
+        if self._crs is None:
+            raise ValueError("Coordinate reference system is not set.")
+        resampling = _RESAMPLING_MAP[resampling]
+
+        transform, new_data = reproject(
+            source=self._data,
+            src_transform=self._transform,
+            src_crs=self._crs,
+            src_nodata=self._nodata,
+            dst_crs=new_crs,
+            resampling=resampling,
+        )
+        self._transform = transform
+        self._data = new_data
+        self._crs = new_crs
 
     @property
     def nodata(self) -> Union[int, float, None]:
