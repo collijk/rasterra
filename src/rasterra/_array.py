@@ -66,6 +66,10 @@ class RasterArray:
             )
         self._crs = new_crs
 
+    def to_crs(self, new_crs: str) -> None:
+        """Reproject the raster to a new coordinate reference system."""
+        raise NotImplementedError()
+
     @property
     def nodata(self) -> Union[int, float, None]:
         """Value representing no data."""
@@ -76,3 +80,15 @@ class RasterArray:
         if self._nodata is not None:
             self._data[self._data == self._nodata] = new_nodata
         self._nodata = new_nodata
+
+    def __repr__(self) -> str:
+        out = "RasterArray\n"
+        out += "===========\n"
+        out += f"dimensions : {self._data.shape[1]}, {self._data.shape[0]} (x, y)\n"
+        out += f"resolution : {self.transform.a}, {self.transform.e} (x, y)\n"
+        bounds = ", ".join(str(s) for s in self.bounds)
+        out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
+        out += f"crs        : {self._crs}\n"
+        out += f"nodata     : {self._nodata}\n"
+        out += f"dtype      : {self._data.dtype}\n"
+        return out
