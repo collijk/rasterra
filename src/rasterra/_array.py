@@ -1,15 +1,13 @@
-from typing import Any, Union, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 from affine import Affine
-
-from rasterio.warp import calculate_default_transform, reproject, Resampling
+from rasterio.warp import Resampling, calculate_default_transform, reproject
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
 
 class RasterArray:
-
     def __init__(
         self,
         data: np.ndarray,
@@ -83,7 +81,7 @@ class RasterArray:
         self,
         new_crs: str,
         resampling_method: Union[str, Resampling] = "nearest",
-    ) -> 'RasterArray':
+    ) -> "RasterArray":
         """
         Reproject the raster to a new coordinate reference system.
 
@@ -115,8 +113,8 @@ class RasterArray:
     def resample(
         self,
         scale_factor: float,
-        resampling_method: Union[str, Resampling] = 'nearest',
-    ) -> 'RasterArray':
+        resampling_method: Union[str, Resampling] = "nearest",
+    ) -> "RasterArray":
         """Resample the raster data to a higher or lower resolution.
 
         Parameters
@@ -154,7 +152,7 @@ class RasterArray:
 
         return RasterArray(out[0], out_transform, self.crs, self.nodata)
 
-    def clip(self, bounds: tuple[float, float, float, float]) -> 'RasterArray':
+    def clip(self, bounds: tuple[float, float, float, float]) -> "RasterArray":
         """
         Clip the raster to a bounding box.
 
