@@ -124,7 +124,7 @@ class RasterArray:
         self,
         shapes: list[Union[Polygon, MultiPolygon]],
     ) -> "RasterArray":
-        shape_mask, transform, window = raster_geometry_mask(
+        _, transform, window = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._data.shape[1],
             data_height=self._data.shape[0],
@@ -135,7 +135,7 @@ class RasterArray:
         x_start, x_end = window.col_off, window.col_off + window.width
         y_start, y_end = window.row_off, window.row_off + window.height
         new_data = self._data[y_start:y_end, x_start:x_end].copy()
-        return RasterArray(new_data, transform, self._crs, nodata=self._nodata)
+        return RasterArray(new_data, transform, self.crs, nodata=self.nodata)
 
     def mask(
         self,
@@ -144,7 +144,7 @@ class RasterArray:
         all_touched: bool = False,
         invert: bool = False,
     ) -> "RasterArray":
-        shape_mask, transform, window = raster_geometry_mask(
+        shape_mask, *_ = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._data.shape[1],
             data_height=self._data.shape[0],
@@ -155,7 +155,7 @@ class RasterArray:
         new_data = self._data.copy()
         new_data[shape_mask] = fill_value
 
-        return RasterArray(new_data, transform, self._crs, nodata=self._nodata)
+        return RasterArray(new_data, self.transform, self.crs, nodata=self.nodata)
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
