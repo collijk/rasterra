@@ -64,14 +64,30 @@ class RasterArray:
             raise ValueError("Coordinate reference system is not set.")
         return str(self._crs)
 
-    @crs.setter
-    def crs(self, new_crs: CRS_IN_TYPE) -> None:
+    @property
+    def nodata(self) -> Union[int, float, None]:
+        """Value representing no data."""
+        return self._nodata
+
+    @property
+    def no_data_mask(self) -> np.ndarray:
+        """Mask representing no data."""
+        if self._nodata is None:
+            return np.zeros_like(self._data, dtype=bool)
+        elif np.isnan(self._nodata):
+            return np.isnan(self._data)
+        elif np.isinf(self._nodata):
+            return np.isinf(self._data)
+        else:
+            return np.equal(self._data, self._nodata)
+
+    def set_crs(self, new_crs: CRS_IN_TYPE) -> "RasterArray":
         if self._crs is not None:
             raise ValueError(
                 "Coordinate reference system is already set. Use to_crs() to reproject "
                 "to a new coordinate reference system."
             )
-        self._crs = new_crs
+        return RasterArray(self._data.copy(), self._transform, new_crs, self._nodata)
 
     def to_crs(self, new_crs: str, resampling: str = "nearest") -> "RasterArray":
         """Reproject the raster to a new coordinate reference system."""
@@ -89,36 +105,15 @@ class RasterArray:
         )
         return RasterArray(new_data[0], transform, new_crs, nodata=self._nodata)
 
-    @property
-    def nodata(self) -> Union[int, float, None]:
-        """Value representing no data."""
-        return self._nodata
-
-    @nodata.setter
-    def nodata(self, new_nodata: Union[int, float]) -> None:
+    def set_nodata(self, new_nodata: Union[int, float]) -> "RasterArray":
+        new_data = self._data.copy()
         if self._nodata is not None:
-            self._data[self.no_data_mask] = new_nodata
-        self._nodata = new_nodata
+            new_data[self.no_data_mask] = new_nodata
+        return RasterArray(new_data, self._transform, self._crs, new_nodata)
 
-    def unset_nodata(self) -> None:
+    def unset_nodata(self) -> "RasterArray":
         """Unset value representing no data."""
-        self._nodata = None
-
-    @property
-    def no_data_mask(self) -> np.ndarray:
-        """Mask representing no data."""
-        if self._nodata is None:
-            return np.zeros_like(self._data, dtype=bool)
-        elif np.isnan(self._nodata):
-            return np.isnan(self._data)
-        elif np.isinf(self._nodata):
-            return np.isinf(self._data)
-        else:
-            return np.equal(self._data, self._nodata)
-
-    @property
-    def plot(self) -> Plotter:
-        return Plotter(self._data, self.transform)
+        return RasterArray(self._data.copy(), self._transform, self._crs, nodata=None)
 
     def clip(
         self,
@@ -171,3 +166,7 @@ class RasterArray:
         out += f"nodata     : {self._nodata}\n"
         out += f"dtype      : {self._data.dtype}\n"
         return out
+
+    @property
+    def plot(self) -> Plotter:
+        return Plotter(self._data, self.transform)
