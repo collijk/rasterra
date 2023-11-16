@@ -100,6 +100,10 @@ class RasterArray:
             self._data[self.no_data_mask] = new_nodata
         self._nodata = new_nodata
 
+    def unset_nodata(self) -> None:
+        """Unset value representing no data."""
+        self._nodata = None
+
     @property
     def no_data_mask(self) -> np.ndarray:
         """Mask representing no data."""
@@ -116,15 +120,29 @@ class RasterArray:
     def plot(self) -> Plotter:
         return Plotter(self._data, self.transform)
 
+    def clip(
+        self,
+        shapes: list[Union[Polygon, MultiPolygon]],
+    ) -> "RasterArray":
+        shape_mask, transform, window = raster_geometry_mask(
+            data_transform=self.transform,
+            data_width=self._data.shape[1],
+            data_height=self._data.shape[0],
+            shapes=shapes,
+            crop=True,
+        )
+
+        x_start, x_end = window.col_off, window.col_off + window.width
+        y_start, y_end = window.row_off, window.row_off + window.height
+        new_data = self._data[y_start:y_end, x_start:x_end].copy()
+        return RasterArray(new_data, transform, self._crs, nodata=self._nodata)
+
     def mask(
         self,
         shapes: list[Union[Polygon, MultiPolygon]],
+        fill_value: Union[int, float],
         all_touched: bool = False,
         invert: bool = False,
-        filled: bool = True,
-        crop: bool = False,
-        pad_x: float = 0.0,
-        pad_y: float = 0.0,
     ) -> "RasterArray":
         shape_mask, transform, window = raster_geometry_mask(
             data_transform=self.transform,
@@ -133,21 +151,9 @@ class RasterArray:
             shapes=shapes,
             all_touched=all_touched,
             invert=invert,
-            crop=crop,
-            pad_x=pad_x,
-            pad_y=pad_y,
         )
-
-        x_start, x_end = window.col_off, window.col_off + window.width
-        y_start, y_end = window.row_off, window.row_off + window.height
-
-        new_data = self._data[y_start:y_end, x_start:x_end].copy()
-
-        current_mask = self.no_data_mask[y_start:y_end, x_start:x_end]
-        new_mask = current_mask | shape_mask
-
-        if filled:
-            new_data[new_mask] = self._nodata
+        new_data = self._data.copy()
+        new_data[shape_mask] = fill_value
 
         return RasterArray(new_data, transform, self._crs, nodata=self._nodata)
 
