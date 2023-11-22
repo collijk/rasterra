@@ -109,6 +109,7 @@ module = [
     "affine",
     "rasterio.*",
     "shapely.*",
+    "mpl_toolkits.*",
 ]
 ignore_missing_imports = true
 
