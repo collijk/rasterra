@@ -87,6 +87,19 @@ class RasterArray:
         """Resolution in y direction."""
         return self.transform.e
 
+    def __getitem__(self, item: tuple[int, int]) -> np.ndarray:
+        return self._data[item].copy()
+
+    def loc(self, x: np.ndarray, y: np.ndarray, how: str = "nearest") -> np.ndarray:
+        """Get raster values at given coordinates."""
+        if how == "nearest":
+            x_idx = np.searchsorted(self.x_coordinates(), x, side="left")
+            y_idx = np.searchsorted(self.y_coordinates(), y, side="left")
+            return self._data[y_idx, x_idx]
+        else:
+            # TODO: implement linear interpolation
+            raise ValueError(f"Invalid value for 'how': {how}")
+
     def x_coordinates(self, center: bool = False) -> np.ndarray:
         """x coordinates of the raster."""
         if center:
