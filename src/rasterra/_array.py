@@ -11,7 +11,7 @@ from rasterra._plotting import Plotter
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
-CRS_IN_TYPE = Union[str, int, dict, None]
+CRS_IN_TYPE = Union[CRS, str, int, dict, None]
 CRS_OUT_TYPE = str
 
 
@@ -40,6 +40,8 @@ class RasterArray:
         """
         self._data = data
         self._transform = transform
+        if not isinstance(crs, CRS):
+            crs = CRS.from_user_input(crs)
         self._crs = crs
         self._nodata = nodata
 
@@ -116,11 +118,16 @@ class RasterArray:
         return self.x_min, self.x_max, self.y_min, self.y_max
 
     @property
-    def crs(self) -> str:
+    def _raw_crs(self) -> CRS:
         """Coordinate reference system."""
         if self._crs is None:
             raise ValueError("Coordinate reference system is not set.")
-        return str(self._crs)
+        return self._crs
+
+    @property
+    def crs(self) -> str:
+        """Coordinate reference system."""
+        return self._raw_crs.to_string()
 
     @property
     def nodata(self) -> Union[int, float, None]:
@@ -157,11 +164,12 @@ class RasterArray:
         if self._crs is None:
             raise ValueError("Coordinate reference system is not set.")
         resampling = _RESAMPLING_MAP[resampling]
+        new_crs = CRS.from_user_input(new_crs)
 
         new_data, transform = reproject(
             source=self._data,
             src_transform=self._transform,
-            src_crs=self._crs,
+            src_crs=self._raw_crs,
             src_nodata=self._nodata,
             dst_crs=new_crs,
             resampling=resampling,
@@ -179,13 +187,13 @@ class RasterArray:
         new_data, transform = reproject(
             source=self._data,
             src_transform=self._transform,
-            src_crs=self._crs,
+            src_crs=self._raw_crs,
             src_nodata=self._nodata,
             destination=destination,
             resampling=resampling,
         )
 
-        return RasterArray(new_data[0], transform, self.crs, nodata=self.nodata)
+        return RasterArray(new_data[0], transform, self._raw_crs, nodata=self.nodata)
 
     def resample_to(
         self, target: "RasterArray", resampling: str = "nearest"
@@ -197,24 +205,26 @@ class RasterArray:
         new_data, transform = reproject(
             source=self._data,
             src_transform=self._transform,
-            src_crs=CRS.from_user_input(self._crs),
+            src_crs=self._raw_crs,
             src_nodata=self._nodata,
             destination=destination,
             dst_transform=target.transform,
-            dst_crs=CRS.from_user_input(target.crs),
+            dst_crs=target._raw_crs,
             resampling=resampling,
         )
-        return RasterArray(new_data[0], transform, self.crs, nodata=self.nodata)
+        return RasterArray(new_data[0], transform, self._raw_crs, nodata=self.nodata)
 
     def set_nodata(self, new_nodata: Union[int, float]) -> "RasterArray":
         new_data = self._data.copy()
         if self._nodata is not None:
             new_data[self.no_data_mask] = new_nodata
-        return RasterArray(new_data, self._transform, self._crs, new_nodata)
+        return RasterArray(new_data, self._transform, self._raw_crs, new_nodata)
 
     def unset_nodata(self) -> "RasterArray":
         """Unset value representing no data."""
-        return RasterArray(self._data.copy(), self._transform, self._crs, nodata=None)
+        return RasterArray(
+            self._data.copy(), self._transform, self._raw_crs, nodata=None
+        )
 
     def clip(
         self,
@@ -231,7 +241,7 @@ class RasterArray:
         x_start, x_end = window.col_off, window.col_off + window.width
         y_start, y_end = window.row_off, window.row_off + window.height
         new_data = self._data[y_start:y_end, x_start:x_end].copy()
-        return RasterArray(new_data, transform, self.crs, nodata=self.nodata)
+        return RasterArray(new_data, transform, self._raw_crs, nodata=self.nodata)
 
     def mask(
         self,
@@ -253,7 +263,7 @@ class RasterArray:
         new_data = self._data.copy()
         new_data[shape_mask] = fill_value
 
-        return RasterArray(new_data, self.transform, self.crs, nodata=self.nodata)
+        return RasterArray(new_data, self.transform, self._raw_crs, nodata=self.nodata)
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
@@ -264,7 +274,7 @@ class RasterArray:
             str(s) for s in [self.x_min, self.x_max, self.y_min, self.y_max]
         )
         out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
-        out += f"crs        : {self._crs}\n"
+        out += f"crs        : {self.crs}\n"
         out += f"nodata     : {self._nodata}\n"
         out += f"size       : {self.nbytes / 1024 ** 2:.2f} MB\n"
         out += f"dtype      : {self._data.dtype}\n"
