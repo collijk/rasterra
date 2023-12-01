@@ -197,7 +197,7 @@ class RasterArray:
         new_data, transform = reproject(
             source=self._data,
             src_transform=self._transform,
-            src_crs=self._crs,
+            src_crs=CRS.from_user_input(self._crs),
             src_nodata=self._nodata,
             destination=destination,
             dst_transform=target.transform,
