@@ -233,10 +233,12 @@ class RasterArray:
     def mask(
         self,
         shapes: list[Union[Polygon, MultiPolygon]],
-        fill_value: Union[int, float],
+        fill_value: Union[int, float, None] = None,
         all_touched: bool = False,
         invert: bool = False,
     ) -> "RasterArray":
+        if fill_value is None:
+            fill_value = self.nodata
         shape_mask, *_ = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._data.shape[1],
