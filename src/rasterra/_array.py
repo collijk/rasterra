@@ -190,6 +190,8 @@ class RasterArray:
         self, target: "RasterArray", resampling: str = "nearest"
     ) -> "RasterArray":
         """Resample the raster to match the resolution of another raster."""
+        resampling = _RESAMPLING_MAP[resampling]
+
         destination = np.empty_like(target._data, dtype=self._data.dtype)
         new_data, transform = reproject(
             source=self._data,
