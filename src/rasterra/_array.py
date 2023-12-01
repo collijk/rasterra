@@ -48,14 +48,71 @@ class RasterArray:
         return self._transform
 
     @property
+    def x_min(self) -> float:
+        """Minimum x coordinate."""
+        return self.transform.c
+
+    @property
+    def x_max(self) -> float:
+        """Maximum x coordinate."""
+        return self.transform.c + self.transform.a * self._data.shape[1]
+
+    @property
+    def y_min(self) -> float:
+        """Minimum y coordinate."""
+        return self.transform.f + self.transform.e * self._data.shape[0]
+
+    @property
+    def y_max(self) -> float:
+        """Maximum y coordinate."""
+        return self.transform.f
+
+    @property
+    def width(self) -> int:
+        """Width of the raster."""
+        return self._data.shape[1]
+
+    @property
+    def height(self) -> int:
+        """Height of the raster."""
+        return self._data.shape[0]
+
+    @property
+    def x_resolution(self) -> float:
+        """Resolution in x direction."""
+        return self.transform.a
+
+    @property
+    def y_resolution(self) -> float:
+        """Resolution in y direction."""
+        return self.transform.e
+
+    def x_coordinates(self, center: bool = False) -> np.ndarray:
+        """x coordinates of the raster."""
+        if center:
+            return np.linspace(
+                self.x_min + self.x_resolution / 2,
+                self.x_max - self.x_resolution / 2,
+                self.width,
+            )
+        else:
+            return np.linspace(self.x_min, self.x_max, self.width)
+
+    def y_coordinates(self, center: bool = False) -> np.ndarray:
+        """y coordinates of the raster."""
+        if center:
+            return np.linspace(
+                self.y_min + self.y_resolution / 2,
+                self.y_max - self.y_resolution / 2,
+                self.height,
+            )
+        else:
+            return np.linspace(self.y_min, self.y_max, self.height)
+
+    @property
     def bounds(self) -> tuple[float, float, float, float]:
         """Bounding box of the raster."""
-        return (
-            self.transform.c,
-            self.transform.f + self.transform.e * self._data.shape[0],
-            self.transform.c + self.transform.a * self._data.shape[1],
-            self.transform.f,
-        )
+        return self.x_min, self.x_max, self.y_min, self.y_max
 
     @property
     def crs(self) -> str:
@@ -160,11 +217,10 @@ class RasterArray:
     def __repr__(self) -> str:
         out = "RasterArray\n"
         out += "===========\n"
-        out += f"dimensions : {self._data.shape[1]}, {self._data.shape[0]} (x, y)\n"
+        out += f"dimensions : {self.width}, {self.height} (x, y)\n"
         out += f"resolution : {self.transform.a}, {self.transform.e} (x, y)\n"
         bounds = ", ".join(
-            str(s)
-            for s in [self.bounds[0], self.bounds[2], self.bounds[1], self.bounds[3]]
+            str(s) for s in [self.x_min, self.x_max, self.y_min, self.y_max]
         )
         out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
         out += f"crs        : {self._crs}\n"
