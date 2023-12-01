@@ -10,18 +10,21 @@ from rasterio.plot import plotting_extent
 
 
 class Plotter:
-    def __init__(self, data: np.ndarray, transform: affine.Affine) -> None:
+    def __init__(
+        self, data: np.ndarray, data_mask: np.ndarray, transform: affine.Affine
+    ) -> None:
         self._data = data
+        self._mask = data_mask
         self._transform = transform
 
     def __call__(
         self,
         ax: Union[Axes, None] = None,
-        cmap: str | Colormap = "viridis",
+        cmap: Union[str, Colormap] = "viridis",
         vmin: Union[float, None] = None,
         vmax: Union[float, None] = None,
-        under_color: str | None = None,
-        norm: Normalize | None = None,
+        under_color: Union[str, None] = None,
+        norm: Union[Normalize, None] = None,
         **kwargs: Any,
     ) -> Axes:
         if (vmin is not None or vmax is not None) and norm is not None:
@@ -36,7 +39,7 @@ class Plotter:
             show_plt = True
             ax = plt.gca()
 
-        _make_image_plot(self._data, norm, cmap, under_color, ax, **kwargs)
+        _make_image_plot(self._data, self._mask, norm, cmap, under_color, ax, **kwargs)
 
         if show_plt:
             plt.show()
@@ -47,13 +50,13 @@ class Plotter:
         self,
         norm: Normalize,
         nbins: int = 50,
-        cmap: str | Colormap = "viridis",
-        under_color: str | None = None,
+        cmap: Union[str, Colormap] = "viridis",
+        under_color: Union[str, None] = None,
     ) -> None:
         """Test a normalization of the data for plotting."""
         vmin = norm.vmin
         vmax = norm.vmax
-        mask = (vmin <= self._data) & (self._data <= vmax)
+        mask = (vmin <= self._data) & (self._data <= vmax) & ~self._mask
         data = self._data[mask].flatten()
 
         result = norm(data)
@@ -62,11 +65,16 @@ class Plotter:
 
         _make_hist_plot(data, nbins, "Raw data", axes[0, 0])
         _make_image_plot(
-            data, Normalize(vmin=vmin, vmax=vmax), cmap, under_color, axes[1, 0]
+            data,
+            self._mask,
+            Normalize(vmin=vmin, vmax=vmax),
+            cmap,
+            under_color,
+            axes[1, 0],
         )
 
         _make_hist_plot(result, nbins, "Normalized data", axes[0, 1])
-        _make_image_plot(result, norm, cmap, under_color, axes[1, 1])
+        _make_image_plot(result, self._mask, norm, cmap, under_color, axes[1, 1])
 
         plt.show()
 
@@ -92,14 +100,21 @@ def _make_hist_plot(
 
 def _make_image_plot(
     data: np.ndarray,
+    mask: np.ndarray,
     norm: Normalize,
-    cmap: str | Colormap,
-    under_color: str | None,
+    cmap: Union[str, Colormap],
+    under_color: Union[str, None],
     ax: Axes,
     **kwargs: Any,
 ) -> Axes:
     """Plot a histogram of the data."""
-    im = ax.imshow(data, cmap=cmap, norm=norm, **kwargs)
+    masked: np.ma.MaskedArray = np.ma.masked_array(data, mask=mask)
+    im = ax.imshow(
+        masked,
+        cmap=cmap,
+        norm=norm,
+        **kwargs,
+    )
     if under_color is not None:
         im.cmap.set_under(under_color)  # type: ignore[union-attr]
 

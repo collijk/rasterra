@@ -81,6 +81,11 @@ class RasterArray:
         else:
             return np.equal(self._data, self._nodata)
 
+    @property
+    def nbytes(self) -> int:
+        """Number of bytes in the raster."""
+        return self._data.nbytes
+
     def set_crs(self, new_crs: CRS_IN_TYPE) -> "RasterArray":
         if self._crs is not None:
             raise ValueError(
@@ -169,4 +174,4 @@ class RasterArray:
 
     @property
     def plot(self) -> Plotter:
-        return Plotter(self._data, self.transform)
+        return Plotter(self._data, self.no_data_mask, self.transform)
