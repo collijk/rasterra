@@ -55,12 +55,12 @@ class RasterArray:
     @property
     def x_max(self) -> float:
         """Maximum x coordinate."""
-        return self.transform.c + self.transform.a * self._data.shape[1]
+        return self.x_min + self.x_resolution * self.width
 
     @property
     def y_min(self) -> float:
         """Minimum y coordinate."""
-        return self.transform.f + self.transform.e * self._data.shape[0]
+        return self.y_max + self.y_resolution * self.height
 
     @property
     def y_max(self) -> float:
@@ -86,19 +86,6 @@ class RasterArray:
     def y_resolution(self) -> float:
         """Resolution in y direction."""
         return self.transform.e
-
-    def __getitem__(self, item: tuple[int, int]) -> np.ndarray:
-        return self._data[item].copy()
-
-    def loc(self, x: np.ndarray, y: np.ndarray, how: str = "nearest") -> np.ndarray:
-        """Get raster values at given coordinates."""
-        if how == "nearest":
-            x_idx = np.searchsorted(self.x_coordinates(), x, side="left")
-            y_idx = np.searchsorted(self.y_coordinates(), y, side="left")
-            return self._data[y_idx, x_idx]
-        else:
-            # TODO: implement linear interpolation
-            raise ValueError(f"Invalid value for 'how': {how}")
 
     def x_coordinates(self, center: bool = False) -> np.ndarray:
         """x coordinates of the raster."""
@@ -179,6 +166,42 @@ class RasterArray:
             resampling=resampling,
         )
         return RasterArray(new_data[0], transform, new_crs, nodata=self._nodata)
+
+    def resample(self, scale: float, resampling: str = "nearest") -> "RasterArray":
+        """Resample the raster."""
+        resampling = _RESAMPLING_MAP[resampling]
+
+        dest_width = int(self.width * scale)
+        dest_height = int(self.height * scale)
+        destination = np.empty((dest_height, dest_width), dtype=self._data.dtype)
+
+        new_data, transform = reproject(
+            source=self._data,
+            src_transform=self._transform,
+            src_crs=self._crs,
+            src_nodata=self._nodata,
+            destination=destination,
+            resampling=resampling,
+        )
+
+        return RasterArray(new_data[0], transform, self.crs, nodata=self.nodata)
+
+    def resample_to(
+        self, target: "RasterArray", resampling: str = "nearest"
+    ) -> "RasterArray":
+        """Resample the raster to match the resolution of another raster."""
+        destination = np.empty_like(target._data, dtype=self._data.dtype)
+        new_data, transform = reproject(
+            source=self._data,
+            src_transform=self._transform,
+            src_crs=self._crs,
+            src_nodata=self._nodata,
+            destination=destination,
+            dst_transform=target.transform,
+            dst_crs=target.crs,
+            resampling=resampling,
+        )
+        return RasterArray(new_data[0], transform, self.crs, nodata=self.nodata)
 
     def set_nodata(self, new_nodata: Union[int, float]) -> "RasterArray":
         new_data = self._data.copy()
