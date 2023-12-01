@@ -2,6 +2,7 @@ from typing import Union
 
 import numpy as np
 from affine import Affine
+from rasterio.crs import CRS
 from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
 
@@ -200,7 +201,7 @@ class RasterArray:
             src_nodata=self._nodata,
             destination=destination,
             dst_transform=target.transform,
-            dst_crs=target.crs,
+            dst_crs=CRS.from_user_input(target.crs),
             resampling=resampling,
         )
         return RasterArray(new_data[0], transform, self.crs, nodata=self.nodata)
