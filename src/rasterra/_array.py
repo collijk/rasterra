@@ -169,6 +169,7 @@ class RasterArray:
         out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
         out += f"crs        : {self._crs}\n"
         out += f"nodata     : {self._nodata}\n"
+        out += f"size       : {self.nbytes / 1024 ** 2:.2f} MB\n"
         out += f"dtype      : {self._data.dtype}\n"
         return out
 
