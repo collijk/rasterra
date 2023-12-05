@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 from affine import Affine
@@ -7,6 +7,7 @@ from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
 
 from rasterra._features import raster_geometry_mask
+from rasterra._ops.arraylike import OpsMixin
 from rasterra._plotting import Plotter
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
@@ -15,7 +16,7 @@ CRS_IN_TYPE = Union[CRS, str, int, dict, None]
 CRS_OUT_TYPE = str
 
 
-class RasterArray:
+class RasterArray(OpsMixin):
     def __init__(
         self,
         data: np.ndarray,
@@ -190,6 +191,7 @@ class RasterArray:
             src_crs=self._raw_crs,
             src_nodata=self._nodata,
             destination=destination,
+            dst_crs=self._raw_crs,
             resampling=resampling,
         )
 
@@ -264,6 +266,32 @@ class RasterArray:
         new_data[shape_mask] = fill_value
 
         return RasterArray(new_data, self.transform, self._raw_crs, nodata=self.nodata)
+
+    def _arith_method(
+        self,
+        other: "RasterArray",
+        op: Callable[[np.ndarray, np.ndarray], np.ndarray],
+    ) -> "RasterArray":
+        if not isinstance(other, RasterArray):
+            raise TypeError("Cannot compare RasterArray with non-RasterArray.")
+        if not self._raw_crs == other._raw_crs:
+            raise ValueError("Coordinate reference systems do not match.")
+        if not self._transform == other._transform:
+            raise ValueError("Transforms do not match.")
+        if not self.nodata == other.nodata:
+            raise ValueError("Nodata values do not match.")
+        if not self._data.shape == other._data.shape:
+            raise ValueError("Shapes do not match.")
+
+        return RasterArray(
+            op(self._data, other._data),
+            self._transform,
+            self._raw_crs,
+            nodata=self.nodata,
+        )
+
+    _cmp_method = _arith_method
+    _logical_method = _arith_method
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
