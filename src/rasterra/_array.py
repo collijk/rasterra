@@ -195,7 +195,7 @@ class RasterArray(OpsMixin):
             resampling=resampling,
         )
 
-        return RasterArray(new_data[0], transform, self._raw_crs, nodata=self.nodata)
+        return RasterArray(new_data, transform, self._raw_crs, nodata=self.nodata)
 
     def resample_to(
         self, target: "RasterArray", resampling: str = "nearest"
@@ -214,7 +214,7 @@ class RasterArray(OpsMixin):
             dst_crs=target._raw_crs,
             resampling=resampling,
         )
-        return RasterArray(new_data[0], transform, self._raw_crs, nodata=self.nodata)
+        return RasterArray(new_data, transform, target._raw_crs, nodata=self.nodata)
 
     def set_nodata(self, new_nodata: Union[int, float]) -> "RasterArray":
         new_data = self._data.copy()
