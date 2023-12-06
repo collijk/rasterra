@@ -10,7 +10,7 @@ FilePath: TypeAlias = Union[str, bytes, PathLike]
 
 
 def load_raster(path: FilePath) -> RasterArray:
-    """Read a file and return its content as a string."""
+    """Load a raster from a file."""
     with rasterio.open(path) as f:
         data = f.read()
         if data.shape[0] == 1:
@@ -25,7 +25,7 @@ def load_raster(path: FilePath) -> RasterArray:
 
 
 def load_mf_raster(paths: list[FilePath]) -> RasterArray:
-    """Read a file and return its content as a string."""
+    """Load multiple files into a single raster."""
     with rasterio.open(paths[0]) as f:
         data = f.read()
         if data.shape[0] == 1:
