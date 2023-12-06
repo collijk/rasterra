@@ -269,22 +269,26 @@ class RasterArray(OpsMixin):
 
     def _arith_method(
         self,
-        other: "RasterArray",
-        op: Callable[[np.ndarray, np.ndarray], np.ndarray],
+        other: Union["RasterArray", int, float],
+        op: Callable[[np.ndarray, Union[np.ndarray, int, float]], np.ndarray],
     ) -> "RasterArray":
-        if not isinstance(other, RasterArray):
-            raise TypeError("Cannot compare RasterArray with non-RasterArray.")
-        if not self._raw_crs == other._raw_crs:
-            raise ValueError("Coordinate reference systems do not match.")
-        if not self._transform == other._transform:
-            raise ValueError("Transforms do not match.")
-        if not self.nodata == other.nodata:
-            raise ValueError("Nodata values do not match.")
-        if not self._data.shape == other._data.shape:
-            raise ValueError("Shapes do not match.")
+        if isinstance(other, RasterArray):
+            if not self._raw_crs == other._raw_crs:
+                raise ValueError("Coordinate reference systems do not match.")
+            if not self._transform == other._transform:
+                raise ValueError("Transforms do not match.")
+            if not self.nodata == other.nodata:
+                raise ValueError("Nodata values do not match.")
+            if not self._data.shape == other._data.shape:
+                raise ValueError("Shapes do not match.")
+            result = op(self._data, other._data)
+        else:
+            if not isinstance(other, (int, float)):
+                raise TypeError("other must be a RasterArray or a number.")
+            result = op(self._data, other)
 
         return RasterArray(
-            op(self._data, other._data),
+            result,
             self._transform,
             self._raw_crs,
             nodata=self.nodata,
