@@ -18,7 +18,7 @@ def load_raster(path: FilePath) -> RasterArray:
                 data[0],
                 transform=f.transform,
                 crs=f.crs,
-                nodata=f.nodata,
+                no_data_value=f.nodata,
             )
         else:
             raise NotImplementedError("Only single-band rasters are supported.")
@@ -35,7 +35,7 @@ def load_mf_raster(paths: list[FilePath]) -> RasterArray:
                 merged[0],
                 transform=transform,
                 crs=f.crs,
-                nodata=f.nodata,
+                no_data_value=f.nodata,
             )
         else:
             raise NotImplementedError("Only single-band rasters are supported.")
