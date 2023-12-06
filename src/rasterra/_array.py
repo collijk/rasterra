@@ -327,16 +327,16 @@ class RasterArray(OpsMixin):
     def __repr__(self) -> str:
         out = "RasterArray\n"
         out += "===========\n"
-        out += f"dimensions : {self.width}, {self.height} (x, y)\n"
-        out += f"resolution : {self.transform.a}, {self.transform.e} (x, y)\n"
+        out += f"dimensions    : {self.width}, {self.height} (x, y)\n"
+        out += f"resolution    : {self.transform.a}, {self.transform.e} (x, y)\n"
         bounds = ", ".join(
             str(s) for s in [self.x_min, self.x_max, self.y_min, self.y_max]
         )
-        out += f"extent     : {bounds} (xmin, xmax, ymin, ymax)\n"
-        out += f"crs        : {self.crs}\n"
-        out += f"no_data_value     : {self._no_data_value}\n"
-        out += f"size       : {self.nbytes / 1024 ** 2:.2f} MB\n"
-        out += f"dtype      : {self._data.dtype}\n"
+        out += f"extent        : {bounds} (xmin, xmax, ymin, ymax)\n"
+        out += f"crs           : {self.crs}\n"
+        out += f"no_data_value : {self._no_data_value}\n"
+        out += f"size          : {self.nbytes / 1024 ** 2:.2f} MB\n"
+        out += f"dtype         : {self._data.dtype}\n"
         return out
 
     @property
