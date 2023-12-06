@@ -111,6 +111,7 @@ module = [
     "rasterio.*",
     "shapely.*",
     "mpl_toolkits.*",
+    "geopandas.*",
 ]
 ignore_missing_imports = true
 

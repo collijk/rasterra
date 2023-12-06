@@ -1,5 +1,6 @@
 from typing import Callable, Union
 
+import geopandas as gpd
 import numpy as np
 from affine import Affine
 from rasterio.crs import CRS
@@ -236,15 +237,26 @@ class RasterArray(OpsMixin):
             self._data.copy(), self._transform, self._raw_crs, no_data_value=None
         )
 
+    def _coerce_to_shapely(
+        self, shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries]
+    ) -> Union[Polygon, MultiPolygon]:
+        if isinstance(shape, (gpd.GeoDataFrame, gpd.GeoSeries)):
+            if not shape.crs == self._raw_crs:
+                raise ValueError("Coordinate reference systems do not match.")
+            return shape.geometry.unary_union
+        return shape
+
     def clip(
         self,
-        shapes: list[Union[Polygon, MultiPolygon]],
+        shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries],
     ) -> "RasterArray":
+        """Clip the raster to a shape."""
+        shape = self._coerce_to_shapely(shape)
         _, transform, window = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._data.shape[1],
             data_height=self._data.shape[0],
-            shapes=shapes,
+            shapes=[shape],
             crop=True,
         )
 
@@ -257,18 +269,21 @@ class RasterArray(OpsMixin):
 
     def mask(
         self,
-        shapes: list[Union[Polygon, MultiPolygon]],
+        shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries],
         fill_value: Union[int, float, None] = None,
         all_touched: bool = False,
         invert: bool = False,
     ) -> "RasterArray":
+        """Mask the raster with a shape."""
+        shape = self._coerce_to_shapely(shape)
+
         if fill_value is None:
             fill_value = self.no_data_value
         shape_mask, *_ = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._data.shape[1],
             data_height=self._data.shape[0],
-            shapes=shapes,
+            shapes=[shape],
             all_touched=all_touched,
             invert=invert,
         )
