@@ -1,4 +1,5 @@
 import numbers
+import typing
 
 import geopandas as gpd
 import numpy as np
@@ -7,14 +8,9 @@ from rasterio.crs import CRS
 from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
 
-from rasterra._dispatch import (
-    dispatch_reduction_ufunc,
-    dispatch_ufunc_with_out,
-    maybe_dispatch_ufunc_to_dunder_op,
-)
 from rasterra._features import raster_geometry_mask
 from rasterra._plotting import Plotter
-from rasterra._typing import NumpyDtype, NumpyUFuncMethod, RawCRS
+from rasterra._typing import Number, NumpyDtype, NumpyUFuncMethod, RawCRS
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
@@ -25,7 +21,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         data: np.ndarray,
         transform: Affine = Affine.identity(),
         crs: RawCRS | None = None,
-        no_data_value: numbers.Number | None = None,
+        no_data_value: Number | None = None,
     ):
         """
         Initialize a RasterArray.
@@ -46,7 +42,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         self._transform = transform
         if crs is not None and not isinstance(crs, CRS):
             crs = CRS.from_user_input(crs)
-        self._crs = crs
+        self._crs: CRS | None = crs
         self._no_data_value = no_data_value
 
     @property
@@ -126,9 +122,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Coordinate reference system."""
         if isinstance(self._crs, CRS):
             return self._crs.to_string()
+        else:
+            return self._crs
 
     @property
-    def no_data_value(self) -> numbers.Number | None:
+    def no_data_value(self) -> Number | None:
         """Value representing no data."""
         return self._no_data_value
 
@@ -226,7 +224,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Resample the raster to match the resolution of another raster."""
         resampling = _RESAMPLING_MAP[resampling]
 
-        destination = np.empty_like(target._data, dtype=self._ndarray.dtype)
+        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)
         new_data, transform = reproject(
             source=self._ndarray,
             src_transform=self._transform,
@@ -241,7 +239,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             new_data, transform, target._crs, no_data_value=self.no_data_value
         )
 
-    def set_no_data_value(self, new_no_data_value: numbers.Number) -> "RasterArray":
+    def set_no_data_value(self, new_no_data_value: Number) -> "RasterArray":
         new_data = self._ndarray.copy()
         if self._no_data_value is not None:
             new_data[self.no_data_mask] = new_no_data_value
@@ -285,7 +283,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     def mask(
         self,
         shape: Polygon | MultiPolygon | gpd.GeoDataFrame | gpd.GeoSeries,
-        fill_value: numbers.Number | None = None,
+        fill_value: Number | None = None,
         all_touched: bool = False,
         invert: bool = False,
     ) -> "RasterArray":
@@ -331,31 +329,25 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     # ----------------------------------------------------------------
     # NumPy array interface
 
-    def __array__(self, dtype: NumpyDtype | None = None):
+    def __array__(self, dtype: NumpyDtype | None = None) -> np.ndarray:
         return np.asarray(self._ndarray, dtype=dtype)
-
-    _HANDLED_TYPES = (np.ndarray, numbers.Number)
 
     def __array_ufunc__(
         self,
         ufunc: np.ufunc,
         method: NumpyUFuncMethod,
-        *inputs,
-        **kwargs,
-    ):
+        *inputs: np.ndarray | Number | "RasterArray",
+        **kwargs: typing.Any,
+    ) -> "RasterArray" | tuple["RasterArray", ...]:
         out = kwargs.get("out", ())
-
-        result = maybe_dispatch_ufunc_to_dunder_op(
-            self, ufunc, method, *inputs, **kwargs
-        )
-        if result is not NotImplemented:
-            return result
-        if "out" in kwargs:
-            return dispatch_ufunc_with_out(self, ufunc, method, *inputs, **kwargs)
-        if method == "reduce":
-            result = dispatch_reduction_ufunc(self, ufunc, method, *inputs, **kwargs)
-            if result is not NotImplemented:
-                return result
+        for x in inputs + out:
+            # Only support operations with instances of _HANDLED_TYPES.
+            # Use RasterArray instead of type(self) for isinstance to
+            # allow subclasses that don't override __array_ufunc__ to
+            # handle RasterArray objects.
+            handled_types = (np.ndarray, numbers.Number, RasterArray)
+            if not isinstance(x, handled_types):
+                return NotImplemented
 
         # Defer to the implementation of the ufunc on unwrapped values.
         inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)
@@ -365,14 +357,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             )
         result = getattr(ufunc, method)(*inputs, **kwargs)
 
-        if ufunc.nout > 1:
+        if type(result) is tuple:
+            # multiple return values
             return tuple(type(self)(x) for x in result)
-        elif method == "at":
-            return None
-        elif method == "reduce":
-            if isinstance(result, np.ndarray):
-                return type(self)(result)
-            else:
-                return result
         else:
+            # one return value
             return type(self)(result)
