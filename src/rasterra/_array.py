@@ -146,7 +146,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         method: NumpyUFuncMethod,
         *inputs: np.ndarray | Number | "RasterArray",
         **kwargs: typing.Any,
-    ) -> "RasterArray" | tuple["RasterArray", ...]:
+    ) -> typing.Union[tuple["RasterArray", ...], "RasterArray"]:
         out = kwargs.get("out", ())
         for x in inputs + out:
             # Only support operations with instances of _HANDLED_TYPES.
