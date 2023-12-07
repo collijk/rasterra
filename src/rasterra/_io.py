@@ -37,7 +37,7 @@ def write_raster(
     }
 
     with rasterio.open(path, "w", **meta) as f:
-        f.write(raster.data, 1)
+        f.write(raster.to_numpy(), 1)
 
 
 def load_mf_raster(paths: list[FilePath]) -> RasterArray:

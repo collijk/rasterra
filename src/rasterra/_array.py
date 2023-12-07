@@ -137,6 +137,10 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             self._ndarray.astype(dtype), self._transform, self._crs, self._no_data_value
         )
 
+    def to_numpy(self) -> np.ndarray:
+        """Convert the raster to a NumPy array."""
+        return self._ndarray.copy()
+
     def __array__(self, dtype: NumpyDtype | None = None) -> np.ndarray:
         return np.asarray(self._ndarray, dtype=dtype)
 
