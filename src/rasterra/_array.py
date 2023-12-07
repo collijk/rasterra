@@ -1,29 +1,28 @@
-from typing import Callable, Union
+import numbers
+import typing
 
 import geopandas as gpd
 import numpy as np
 from affine import Affine
+from numpy.core.multiarray import flagsobj
 from rasterio.crs import CRS
 from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
 
 from rasterra._features import raster_geometry_mask
-from rasterra._ops.arraylike import OpsMixin
 from rasterra._plotting import Plotter
+from rasterra._typing import Number, NumpyDtype, NumpyUFuncMethod, RawCRS
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
-CRS_IN_TYPE = Union[CRS, str, int, dict, None]
-CRS_OUT_TYPE = str
 
-
-class RasterArray(OpsMixin):
+class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     def __init__(
         self,
         data: np.ndarray,
         transform: Affine = Affine.identity(),
-        crs: CRS_IN_TYPE = None,
-        no_data_value: Union[int, float, None] = None,
+        crs: RawCRS | None = None,
+        no_data_value: Number | None = None,
     ):
         """
         Initialize a RasterArray.
@@ -40,12 +39,152 @@ class RasterArray(OpsMixin):
             Value representing no data.
 
         """
-        self._data = data
+        self._ndarray = data
         self._transform = transform
-        if not isinstance(crs, CRS):
+        if crs is not None and not isinstance(crs, CRS):
             crs = CRS.from_user_input(crs)
-        self._crs = crs
+        self._crs: CRS | None = crs
         self._no_data_value = no_data_value
+
+    # ----------------------------------------------------------------
+    # Array data
+
+    @property
+    def flags(self) -> flagsobj:
+        """Flags of the raster."""
+        return self._ndarray.flags
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the raster."""
+        return self._ndarray.shape
+
+    @property
+    def strides(self) -> tuple[int, ...]:
+        """Strides of the raster."""
+        return self._ndarray.strides
+
+    @property
+    def ndim(self) -> int:
+        """Number of dimensions of the raster."""
+        return 2
+
+    @property
+    def data(self) -> memoryview:
+        """Python buffer object pooint to the start of the raster's data."""
+        return self._ndarray.data
+
+    @property
+    def size(self) -> int:
+        """Number of elements in the raster."""
+        return self._ndarray.size
+
+    @property
+    def itemsize(self) -> int:
+        """Size of each element in the raster."""
+        return self._ndarray.itemsize
+
+    @property
+    def nbytes(self) -> int:
+        """Number of bytes in the raster."""
+        return self._ndarray.nbytes
+
+    @property
+    def base(self) -> np.ndarray | None:
+        """Base object of the raster."""
+        return self._ndarray.base
+
+    @property
+    def dtype(self) -> np.dtype:
+        """Data type of the raster."""
+        return self._ndarray.dtype
+
+    @property
+    def T(self) -> typing.NoReturn:  # noqa: N802
+        """Transpose of the raster."""
+        raise TypeError("Transpose of a raster is not defined.")
+
+    @property
+    def real(self) -> "RasterArray":
+        """Real part of the raster."""
+        return RasterArray(
+            self._ndarray.real, self._transform, self._crs, self._no_data_value
+        )
+
+    @property
+    def imag(self) -> "RasterArray":
+        """Imaginary part of the raster."""
+        return RasterArray(
+            self._ndarray.imag, self._transform, self._crs, self._no_data_value
+        )
+
+    @property
+    def flat(self) -> np.flatiter:
+        """Flat iterator of the raster."""
+        return self._ndarray.flat
+
+    @property
+    def ctypes(self) -> typing.NoReturn:
+        """ctypes object of the raster."""
+        raise TypeError("ctypes object of a raster is not defined.")
+
+    # ----------------------------------------------------------------
+    # NumPy array interface
+
+    def astype(self, dtype: NumpyDtype) -> "RasterArray":
+        """Cast the raster to a new data type."""
+        return RasterArray(
+            self._ndarray.astype(dtype), self._transform, self._crs, self._no_data_value
+        )
+
+    def __array__(self, dtype: NumpyDtype | None = None) -> np.ndarray:
+        return np.asarray(self._ndarray, dtype=dtype)
+
+    def __array_ufunc__(
+        self,
+        ufunc: np.ufunc,
+        method: NumpyUFuncMethod,
+        *inputs: np.ndarray | Number | "RasterArray",
+        **kwargs: typing.Any,
+    ) -> "RasterArray" | tuple["RasterArray", ...]:
+        out = kwargs.get("out", ())
+        for x in inputs + out:
+            # Only support operations with instances of _HANDLED_TYPES.
+            # Use RasterArray instead of type(self) for isinstance to
+            # allow subclasses that don't override __array_ufunc__ to
+            # handle RasterArray objects.
+            handled_types = (np.ndarray, numbers.Number, RasterArray)
+            if not isinstance(x, handled_types):
+                return NotImplemented
+
+        # Defer to the implementation of the ufunc on unwrapped values.
+        inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)
+        if out:
+            kwargs["out"] = tuple(
+                x._ndarray if isinstance(x, RasterArray) else x for x in out
+            )
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        if type(result) is tuple:
+            # multiple return values
+            return tuple(type(self)(x) for x in result)
+        else:
+            # one return value
+            return type(self)(result)
+
+    # ----------------------------------------------------------------
+    # Specialized array methods
+
+    def all(self) -> bool:
+        """Return True if all elements evaluate to True."""
+        return self._ndarray.all()  # type: ignore[return-value]
+
+    def any(self) -> bool:
+        """Return True if any element evaluates to True."""
+        return self._ndarray.any()  # type: ignore[return-value]
+
+    # ----------------------------------------------------------------
+    # Raster data
 
     @property
     def transform(self) -> Affine:
@@ -75,12 +214,12 @@ class RasterArray(OpsMixin):
     @property
     def width(self) -> int:
         """Width of the raster."""
-        return self._data.shape[1]
+        return self._ndarray.shape[1]
 
     @property
     def height(self) -> int:
         """Height of the raster."""
-        return self._data.shape[0]
+        return self._ndarray.shape[0]
 
     @property
     def x_resolution(self) -> float:
@@ -120,19 +259,15 @@ class RasterArray(OpsMixin):
         return self.x_min, self.x_max, self.y_min, self.y_max
 
     @property
-    def _raw_crs(self) -> CRS:
+    def crs(self) -> str | None:
         """Coordinate reference system."""
-        if self._crs is None:
-            raise ValueError("Coordinate reference system is not set.")
-        return self._crs
+        if isinstance(self._crs, CRS):
+            return self._crs.to_string()
+        else:
+            return self._crs
 
     @property
-    def crs(self) -> str:
-        """Coordinate reference system."""
-        return self._raw_crs.to_string()
-
-    @property
-    def no_data_value(self) -> Union[int, float, None]:
+    def no_data_value(self) -> Number | None:
         """Value representing no data."""
         return self._no_data_value
 
@@ -140,47 +275,22 @@ class RasterArray(OpsMixin):
     def no_data_mask(self) -> np.ndarray:
         """Mask representing no data."""
         if self._no_data_value is None:
-            return np.zeros_like(self._data, dtype=bool)
+            return np.zeros_like(self._ndarray, dtype=bool)
         elif np.isnan(self._no_data_value):
-            return np.isnan(self._data)
+            return np.isnan(self._ndarray)
         elif np.isinf(self._no_data_value):
-            return np.isinf(self._data)
+            return np.isinf(self._ndarray)
         else:
-            return np.equal(self._data, self._no_data_value)
+            return np.equal(self._ndarray, self._no_data_value)
 
-    @property
-    def nbytes(self) -> int:
-        """Number of bytes in the raster."""
-        return self._data.nbytes
-
-    @property
-    def data(self) -> np.ndarray:
-        """Raster data."""
-        return self._data.copy()
-
-    @property
-    def values(self) -> np.ndarray:
-        """Raster data."""
-        return self._data.copy()
-
-    @property
-    def size(self) -> int:
-        """Number of elements in the raster."""
-        return self._data.size
-
-    @property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of the raster."""
-        return self._data.shape
-
-    def set_crs(self, new_crs: CRS_IN_TYPE) -> "RasterArray":
+    def set_crs(self, new_crs: RawCRS) -> "RasterArray":
         if self._crs is not None:
             raise ValueError(
                 "Coordinate reference system is already set. Use to_crs() to reproject "
                 "to a new coordinate reference system."
             )
         return RasterArray(
-            self._data.copy(), self._transform, new_crs, self._no_data_value
+            self._ndarray.copy(), self._transform, new_crs, self._no_data_value
         )
 
     def to_crs(self, new_crs: str, resampling: str = "nearest") -> "RasterArray":
@@ -191,9 +301,9 @@ class RasterArray(OpsMixin):
         new_crs = CRS.from_user_input(new_crs)
 
         new_data, transform = reproject(
-            source=self._data,
+            source=self._ndarray,
             src_transform=self._transform,
-            src_crs=self._raw_crs,
+            src_crs=self._crs,
             src_no_data_value=self._no_data_value,
             dst_crs=new_crs,
             resampling=resampling,
@@ -208,20 +318,20 @@ class RasterArray(OpsMixin):
 
         dest_width = int(self.width * scale)
         dest_height = int(self.height * scale)
-        destination = np.empty((dest_height, dest_width), dtype=self._data.dtype)
+        destination = np.empty((dest_height, dest_width), dtype=self._ndarray.dtype)
 
         new_data, transform = reproject(
-            source=self._data,
+            source=self._ndarray,
             src_transform=self._transform,
-            src_crs=self._raw_crs,
+            src_crs=self._crs,
             src_no_data_value=self._no_data_value,
             destination=destination,
-            dst_crs=self._raw_crs,
+            dst_crs=self._crs,
             resampling=resampling,
         )
 
         return RasterArray(
-            new_data, transform, self._raw_crs, no_data_value=self.no_data_value
+            new_data, transform, self._crs, no_data_value=self.no_data_value
         )
 
     def resample_to(
@@ -230,67 +340,66 @@ class RasterArray(OpsMixin):
         """Resample the raster to match the resolution of another raster."""
         resampling = _RESAMPLING_MAP[resampling]
 
-        destination = np.empty_like(target._data, dtype=self._data.dtype)
+        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)
         new_data, transform = reproject(
-            source=self._data,
+            source=self._ndarray,
             src_transform=self._transform,
-            src_crs=self._raw_crs,
+            src_crs=self._crs,
             src_no_data_value=self._no_data_value,
             destination=destination,
             dst_transform=target.transform,
-            dst_crs=target._raw_crs,
+            dst_crs=target._crs,
             resampling=resampling,
         )
         return RasterArray(
-            new_data, transform, target._raw_crs, no_data_value=self.no_data_value
+            new_data, transform, target._crs, no_data_value=self.no_data_value
         )
 
-    def set_no_data_value(self, new_no_data_value: Union[int, float]) -> "RasterArray":
-        new_data = self._data.copy()
+    def set_no_data_value(self, new_no_data_value: Number) -> "RasterArray":
+        new_data = self._ndarray.copy()
         if self._no_data_value is not None:
             new_data[self.no_data_mask] = new_no_data_value
-        return RasterArray(new_data, self._transform, self._raw_crs, new_no_data_value)
+        return RasterArray(new_data, self._transform, self._crs, new_no_data_value)
 
     def unset_no_data_value(self) -> "RasterArray":
         """Unset value representing no data."""
         return RasterArray(
-            self._data.copy(), self._transform, self._raw_crs, no_data_value=None
+            self._ndarray.copy(), self._transform, self._crs, no_data_value=None
         )
 
     def _coerce_to_shapely(
-        self, shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries]
-    ) -> Union[Polygon, MultiPolygon]:
+        self, shape: Polygon | MultiPolygon | gpd.GeoDataFrame | gpd.GeoSeries
+    ) -> Polygon | MultiPolygon:
         if isinstance(shape, (gpd.GeoDataFrame, gpd.GeoSeries)):
-            if not shape.crs == self._raw_crs:
+            if not shape.crs == self._crs:
                 raise ValueError("Coordinate reference systems do not match.")
             return shape.geometry.unary_union
         return shape
 
     def clip(
-        self,
-        shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries],
+        self, shape: Polygon | MultiPolygon | gpd.GeoDataFrame | gpd.GeoSeries
     ) -> "RasterArray":
         """Clip the raster to a shape."""
         shape = self._coerce_to_shapely(shape)
         _, transform, window = raster_geometry_mask(
             data_transform=self.transform,
-            data_width=self._data.shape[1],
-            data_height=self._data.shape[0],
+            data_width=self._ndarray.shape[1],
+            data_height=self._ndarray.shape[0],
             shapes=[shape],
             crop=True,
         )
 
         x_start, x_end = window.col_off, window.col_off + window.width
         y_start, y_end = window.row_off, window.row_off + window.height
-        new_data = self._data[y_start:y_end, x_start:x_end].copy()
+        new_data = self._ndarray[y_start:y_end, x_start:x_end].copy()
         return RasterArray(
-            new_data, transform, self._raw_crs, no_data_value=self.no_data_value
+            new_data, transform, self._crs, no_data_value=self.no_data_value
         )
 
     def mask(
         self,
-        shape: Union[Polygon, MultiPolygon, gpd.GeoDataFrame, gpd.GeoSeries],
-        fill_value: Union[int, float, None] = None,
+        shape: Polygon | MultiPolygon | gpd.GeoDataFrame | gpd.GeoSeries,
+        fill_value: Number | None = None,
         all_touched: bool = False,
         invert: bool = False,
     ) -> "RasterArray":
@@ -301,48 +410,18 @@ class RasterArray(OpsMixin):
             fill_value = self.no_data_value
         shape_mask, *_ = raster_geometry_mask(
             data_transform=self.transform,
-            data_width=self._data.shape[1],
-            data_height=self._data.shape[0],
+            data_width=self._ndarray.shape[1],
+            data_height=self._ndarray.shape[0],
             shapes=[shape],
             all_touched=all_touched,
             invert=invert,
         )
-        new_data = self._data.copy()
+        new_data = self._ndarray.copy()
         new_data[shape_mask] = fill_value
 
         return RasterArray(
-            new_data, self.transform, self._raw_crs, no_data_value=self.no_data_value
+            new_data, self.transform, self._crs, no_data_value=self.no_data_value
         )
-
-    def _arith_method(
-        self,
-        other: Union["RasterArray", int, float],
-        op: Callable[[np.ndarray, Union[np.ndarray, int, float]], np.ndarray],
-    ) -> "RasterArray":
-        if isinstance(other, RasterArray):
-            if not self._raw_crs == other._raw_crs:
-                raise ValueError("Coordinate reference systems do not match.")
-            if not self._transform == other._transform:
-                raise ValueError("Transforms do not match.")
-            if not self.no_data_value == other.no_data_value:
-                raise ValueError("Nodata values do not match.")
-            if not self._data.shape == other._data.shape:
-                raise ValueError("Shapes do not match.")
-            result = op(self._data, other._data)
-        else:
-            if not isinstance(other, (int, float)):
-                raise TypeError("other must be a RasterArray or a number.")
-            result = op(self._data, other)
-
-        return RasterArray(
-            result,
-            self._transform,
-            self._raw_crs,
-            no_data_value=self.no_data_value,
-        )
-
-    _cmp_method = _arith_method
-    _logical_method = _arith_method
 
     def __repr__(self) -> str:
         out = "RasterArray\n"
@@ -356,9 +435,9 @@ class RasterArray(OpsMixin):
         out += f"crs           : {self.crs}\n"
         out += f"no_data_value : {self._no_data_value}\n"
         out += f"size          : {self.nbytes / 1024 ** 2:.2f} MB\n"
-        out += f"dtype         : {self._data.dtype}\n"
+        out += f"dtype         : {self._ndarray.dtype}\n"
         return out
 
     @property
     def plot(self) -> Plotter:
-        return Plotter(self._data, self.no_data_mask, self.transform)
+        return Plotter(self._ndarray, self.no_data_mask, self.transform)
