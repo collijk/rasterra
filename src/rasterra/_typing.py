@@ -1,7 +1,10 @@
+import os
 import typing
 
 import numpy as np
 from rasterio.crs import CRS as _CRS
+
+FilePath: typing.TypeAlias = str | bytes | os.PathLike
 
 Number: typing.TypeAlias = typing.Union[int, float, complex]
 RawCRS: typing.TypeAlias = _CRS | str | int | dict

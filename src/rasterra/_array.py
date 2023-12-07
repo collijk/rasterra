@@ -11,7 +11,7 @@ from shapely.geometry import MultiPolygon, Polygon
 
 from rasterra._features import raster_geometry_mask
 from rasterra._plotting import Plotter
-from rasterra._typing import Number, NumpyDtype, NumpyUFuncMethod, RawCRS
+from rasterra._typing import FilePath, Number, NumpyDtype, NumpyUFuncMethod, RawCRS
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
@@ -437,6 +437,12 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         out += f"size          : {self.nbytes / 1024 ** 2:.2f} MB\n"
         out += f"dtype         : {self._ndarray.dtype}\n"
         return out
+
+    def to_file(self, path: FilePath) -> None:
+        """Write the raster to a file."""
+        from rasterra._io import write_raster
+
+        write_raster(self, path)
 
     @property
     def plot(self) -> Plotter:
