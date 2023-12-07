@@ -15,6 +15,8 @@ from rasterra._typing import FilePath, Number, NumpyDtype, NumpyUFuncMethod, Raw
 
 _RESAMPLING_MAP = {data.name: data for data in Resampling}
 
+NO_DATA_UNSET = None
+
 
 class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     def __init__(
@@ -22,7 +24,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         data: np.ndarray,
         transform: Affine = Affine.identity(),
         crs: RawCRS | None = None,
-        no_data_value: Number | None = None,
+        no_data_value: Number | None = NO_DATA_UNSET,
     ):
         """
         Initialize a RasterArray.
@@ -270,23 +272,6 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         else:
             return self._crs
 
-    @property
-    def no_data_value(self) -> Number | None:
-        """Value representing no data."""
-        return self._no_data_value
-
-    @property
-    def no_data_mask(self) -> np.ndarray:
-        """Mask representing no data."""
-        if self._no_data_value is None:
-            return np.zeros_like(self._ndarray, dtype=bool)
-        elif np.isnan(self._no_data_value):
-            return np.isnan(self._ndarray)
-        elif np.isinf(self._no_data_value):
-            return np.isinf(self._ndarray)
-        else:
-            return np.equal(self._ndarray, self._no_data_value)
-
     def set_crs(self, new_crs: RawCRS) -> "RasterArray":
         if self._crs is not None:
             raise ValueError(
@@ -315,6 +300,37 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         return RasterArray(
             new_data[0], transform, new_crs, no_data_value=self._no_data_value
         )
+
+    @property
+    def no_data_value(self) -> Number:
+        """Value representing no data."""
+        if self._no_data_value is NO_DATA_UNSET:
+            raise ValueError("No data value is not set.")
+        return self._no_data_value
+
+    def set_no_data_value(self, new_no_data_value: Number) -> "RasterArray":
+        new_data = self._ndarray.copy()
+        if self._no_data_value is not NO_DATA_UNSET:
+            new_data[self.no_data_mask] = new_no_data_value
+        return RasterArray(new_data, self._transform, self._crs, new_no_data_value)
+
+    def unset_no_data_value(self) -> "RasterArray":
+        """Unset value representing no data."""
+        return RasterArray(
+            self._ndarray.copy(), self._transform, self._crs, NO_DATA_UNSET
+        )
+
+    @property
+    def no_data_mask(self) -> np.ndarray:
+        """Mask representing no data."""
+        if self._no_data_value is NO_DATA_UNSET:
+            return np.zeros_like(self._ndarray, dtype=bool)
+        elif np.isnan(self._no_data_value):
+            return np.isnan(self._ndarray)
+        elif np.isinf(self._no_data_value):
+            return np.isinf(self._ndarray)
+        else:
+            return np.equal(self._ndarray, self._no_data_value)
 
     def resample(self, scale: float, resampling: str = "nearest") -> "RasterArray":
         """Resample the raster."""
@@ -359,18 +375,6 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             new_data, transform, target._crs, no_data_value=self.no_data_value
         )
 
-    def set_no_data_value(self, new_no_data_value: Number) -> "RasterArray":
-        new_data = self._ndarray.copy()
-        if self._no_data_value is not None:
-            new_data[self.no_data_mask] = new_no_data_value
-        return RasterArray(new_data, self._transform, self._crs, new_no_data_value)
-
-    def unset_no_data_value(self) -> "RasterArray":
-        """Unset value representing no data."""
-        return RasterArray(
-            self._ndarray.copy(), self._transform, self._crs, no_data_value=None
-        )
-
     def _coerce_to_shapely(
         self, shape: Polygon | MultiPolygon | gpd.GeoDataFrame | gpd.GeoSeries
     ) -> Polygon | MultiPolygon:
@@ -409,9 +413,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     ) -> "RasterArray":
         """Mask the raster with a shape."""
         shape = self._coerce_to_shapely(shape)
-
-        if fill_value is None:
+        if fill_value is None and self._no_data_value is NO_DATA_UNSET:
+            raise ValueError("No fill value is set.")
+        elif fill_value is None:
             fill_value = self.no_data_value
+
         shape_mask, *_ = raster_geometry_mask(
             data_transform=self.transform,
             data_width=self._ndarray.shape[1],
