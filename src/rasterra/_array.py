@@ -4,6 +4,7 @@ import typing
 import geopandas as gpd
 import numpy as np
 from affine import Affine
+from numpy.core.multiarray import flagsobj
 from rasterio.crs import CRS
 from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
@@ -44,6 +45,146 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             crs = CRS.from_user_input(crs)
         self._crs: CRS | None = crs
         self._no_data_value = no_data_value
+
+    # ----------------------------------------------------------------
+    # Array data
+
+    @property
+    def flags(self) -> flagsobj:
+        """Flags of the raster."""
+        return self._ndarray.flags
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the raster."""
+        return self._ndarray.shape
+
+    @property
+    def strides(self) -> tuple[int, ...]:
+        """Strides of the raster."""
+        return self._ndarray.strides
+
+    @property
+    def ndim(self) -> int:
+        """Number of dimensions of the raster."""
+        return 2
+
+    @property
+    def data(self) -> memoryview:
+        """Python buffer object pooint to the start of the raster's data."""
+        return self._ndarray.data
+
+    @property
+    def size(self) -> int:
+        """Number of elements in the raster."""
+        return self._ndarray.size
+
+    @property
+    def itemsize(self) -> int:
+        """Size of each element in the raster."""
+        return self._ndarray.itemsize
+
+    @property
+    def nbytes(self) -> int:
+        """Number of bytes in the raster."""
+        return self._ndarray.nbytes
+
+    @property
+    def base(self) -> np.ndarray | None:
+        """Base object of the raster."""
+        return self._ndarray.base
+
+    @property
+    def dtype(self) -> np.dtype:
+        """Data type of the raster."""
+        return self._ndarray.dtype
+
+    @property
+    def T(self) -> typing.NoReturn:  # noqa: N802
+        """Transpose of the raster."""
+        raise TypeError("Transpose of a raster is not defined.")
+
+    @property
+    def real(self) -> "RasterArray":
+        """Real part of the raster."""
+        return RasterArray(
+            self._ndarray.real, self._transform, self._crs, self._no_data_value
+        )
+
+    @property
+    def imag(self) -> "RasterArray":
+        """Imaginary part of the raster."""
+        return RasterArray(
+            self._ndarray.imag, self._transform, self._crs, self._no_data_value
+        )
+
+    @property
+    def flat(self) -> np.flatiter:
+        """Flat iterator of the raster."""
+        return self._ndarray.flat
+
+    @property
+    def ctypes(self) -> typing.NoReturn:
+        """ctypes object of the raster."""
+        raise TypeError("ctypes object of a raster is not defined.")
+
+    # ----------------------------------------------------------------
+    # NumPy array interface
+
+    def astype(self, dtype: NumpyDtype) -> "RasterArray":
+        """Cast the raster to a new data type."""
+        return RasterArray(
+            self._ndarray.astype(dtype), self._transform, self._crs, self._no_data_value
+        )
+
+    def __array__(self, dtype: NumpyDtype | None = None) -> np.ndarray:
+        return np.asarray(self._ndarray, dtype=dtype)
+
+    def __array_ufunc__(
+        self,
+        ufunc: np.ufunc,
+        method: NumpyUFuncMethod,
+        *inputs: np.ndarray | Number | "RasterArray",
+        **kwargs: typing.Any,
+    ) -> "RasterArray" | tuple["RasterArray", ...]:
+        out = kwargs.get("out", ())
+        for x in inputs + out:
+            # Only support operations with instances of _HANDLED_TYPES.
+            # Use RasterArray instead of type(self) for isinstance to
+            # allow subclasses that don't override __array_ufunc__ to
+            # handle RasterArray objects.
+            handled_types = (np.ndarray, numbers.Number, RasterArray)
+            if not isinstance(x, handled_types):
+                return NotImplemented
+
+        # Defer to the implementation of the ufunc on unwrapped values.
+        inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)
+        if out:
+            kwargs["out"] = tuple(
+                x._ndarray if isinstance(x, RasterArray) else x for x in out
+            )
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        if type(result) is tuple:
+            # multiple return values
+            return tuple(type(self)(x) for x in result)
+        else:
+            # one return value
+            return type(self)(result)
+
+    # ----------------------------------------------------------------
+    # Specialized array methods
+
+    def all(self) -> bool:
+        """Return True if all elements evaluate to True."""
+        return self._ndarray.all()  # type: ignore[return-value]
+
+    def any(self) -> bool:
+        """Return True if any element evaluates to True."""
+        return self._ndarray.any()  # type: ignore[return-value]
+
+    # ----------------------------------------------------------------
+    # Raster data
 
     @property
     def transform(self) -> Affine:
@@ -141,31 +282,6 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             return np.isinf(self._ndarray)
         else:
             return np.equal(self._ndarray, self._no_data_value)
-
-    @property
-    def nbytes(self) -> int:
-        """Number of bytes in the raster."""
-        return self._ndarray.nbytes
-
-    @property
-    def data(self) -> np.ndarray:
-        """Raster data."""
-        return self._ndarray.copy()
-
-    @property
-    def values(self) -> np.ndarray:
-        """Raster data."""
-        return self._ndarray.copy()
-
-    @property
-    def size(self) -> int:
-        """Number of elements in the raster."""
-        return self._ndarray.size
-
-    @property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of the raster."""
-        return self._ndarray.shape
 
     def set_crs(self, new_crs: RawCRS) -> "RasterArray":
         if self._crs is not None:
@@ -325,41 +441,3 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def plot(self) -> Plotter:
         return Plotter(self._ndarray, self.no_data_mask, self.transform)
-
-    # ----------------------------------------------------------------
-    # NumPy array interface
-
-    def __array__(self, dtype: NumpyDtype | None = None) -> np.ndarray:
-        return np.asarray(self._ndarray, dtype=dtype)
-
-    def __array_ufunc__(
-        self,
-        ufunc: np.ufunc,
-        method: NumpyUFuncMethod,
-        *inputs: np.ndarray | Number | "RasterArray",
-        **kwargs: typing.Any,
-    ) -> "RasterArray" | tuple["RasterArray", ...]:
-        out = kwargs.get("out", ())
-        for x in inputs + out:
-            # Only support operations with instances of _HANDLED_TYPES.
-            # Use RasterArray instead of type(self) for isinstance to
-            # allow subclasses that don't override __array_ufunc__ to
-            # handle RasterArray objects.
-            handled_types = (np.ndarray, numbers.Number, RasterArray)
-            if not isinstance(x, handled_types):
-                return NotImplemented
-
-        # Defer to the implementation of the ufunc on unwrapped values.
-        inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)
-        if out:
-            kwargs["out"] = tuple(
-                x._ndarray if isinstance(x, RasterArray) else x for x in out
-            )
-        result = getattr(ufunc, method)(*inputs, **kwargs)
-
-        if type(result) is tuple:
-            # multiple return values
-            return tuple(type(self)(x) for x in result)
-        else:
-            # one return value
-            return type(self)(result)
