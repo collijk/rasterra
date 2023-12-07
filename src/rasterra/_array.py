@@ -153,6 +153,26 @@ class RasterArray(OpsMixin):
         """Number of bytes in the raster."""
         return self._data.nbytes
 
+    @property
+    def data(self) -> np.ndarray:
+        """Raster data."""
+        return self._data.copy()
+
+    @property
+    def values(self) -> np.ndarray:
+        """Raster data."""
+        return self._data.copy()
+
+    @property
+    def size(self) -> int:
+        """Number of elements in the raster."""
+        return self._data.size
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the raster."""
+        return self._data.shape
+
     def set_crs(self, new_crs: CRS_IN_TYPE) -> "RasterArray":
         if self._crs is not None:
             raise ValueError(
