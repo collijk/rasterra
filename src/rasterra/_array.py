@@ -162,6 +162,13 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             handled_types = (np.ndarray, numbers.Number, RasterArray)
             if not isinstance(x, handled_types):
                 return NotImplemented
+            if isinstance(x, RasterArray):
+                if x._crs != self._crs:
+                    raise ValueError("Coordinate reference systems do not match.")
+                if x._no_data_value != self._no_data_value:
+                    raise ValueError("No data values do not match.")
+                if x._transform != self._transform:
+                    raise ValueError("Affine transforms do not match.")
 
         # Defer to the implementation of the ufunc on unwrapped values.
         inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)
@@ -173,10 +180,13 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
 
         if type(result) is tuple:
             # multiple return values
-            return tuple(type(self)(x) for x in result)
+            return tuple(
+                type(self)(x, self._transform, self._crs, self._no_data_value)
+                for x in result
+            )
         else:
             # one return value
-            return type(self)(result)
+            return type(self)(result, self._transform, self._crs, self._no_data_value)
 
     # ----------------------------------------------------------------
     # Specialized array methods
