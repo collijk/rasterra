@@ -165,7 +165,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             if isinstance(x, RasterArray):
                 if x._crs != self._crs:
                     raise ValueError("Coordinate reference systems do not match.")
-                if x._no_data_value != self._no_data_value:
+                if not self._no_data_equal(x._no_data_value):
                     raise ValueError("No data values do not match.")
                 if x._transform != self._transform:
                     raise ValueError("Affine transforms do not match.")
@@ -323,6 +323,20 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         if self._no_data_value is not NO_DATA_UNSET:
             new_data[self.no_data_mask] = new_no_data_value
         return RasterArray(new_data, self._transform, self._crs, new_no_data_value)
+
+    def _no_data_equal(self, other_no_data_value: Number | None) -> bool:
+        if self._no_data_value is NO_DATA_UNSET:
+            return other_no_data_value is NO_DATA_UNSET
+        elif other_no_data_value is NO_DATA_UNSET:
+            return False
+        elif np.isnan(self._no_data_value):
+            return np.isnan(other_no_data_value)
+        elif np.isinf(self._no_data_value):
+            return np.isinf(other_no_data_value) and np.sign(
+                self._no_data_value
+            ) == np.sign(other_no_data_value)
+        else:
+            return self._no_data_value == other_no_data_value
 
     def unset_no_data_value(self) -> "RasterArray":
         """Unset value representing no data."""
