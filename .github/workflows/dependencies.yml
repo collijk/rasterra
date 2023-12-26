@@ -21,7 +21,7 @@ jobs:
           echo ::set-output name="body::$body"
 
       - name: Gather outdated dependencies 2
-        id: check_for_outdated_dependencies
+        id: check_for_outdated_dependencies_2
         run: |
           body=$(poetry show -o -n)
           echo "body=$body" >> "$GITHUB_OUTPUT"
