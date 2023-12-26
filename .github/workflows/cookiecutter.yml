@@ -23,7 +23,10 @@ jobs:
 
       - name: Check if there are changes
         id: changes
-        run: echo "::set-output name=changed::$(git status --porcelain | wc -l)"
+        run: |
+          git status --porcelain | wc -l
+          echo "changed=$(git status --porcelain | wc -l)" >> "$GITHUB_OUTPUT"
+
 
       - name: apply additional changes and fixes
         if: steps.changes.outputs.changed > 0
@@ -39,8 +42,9 @@ jobs:
         run: |
           CURRENT_VERSION=$(git show HEAD:.cruft.json | jello -r "_['commit'][:8]")
           NEXT_VERSION=$(jello -r "_['commit'][:8]" < .cruft.json)
-          echo ::set-output name="current_version::$CURRENT_VERSION"
-          echo ::set-output name="next_version::$NEXT_VERSION"
+          echo "current_version=$CURRENT_VERSION next_version=$NEXT_VERSION"
+          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Get changelog
         id: get_changelog
@@ -60,7 +64,14 @@ jobs:
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
-          echo ::set-output name="changelog::$body"
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          {
+            echo "changelog<<$EOF"
+            echo "$body"
+            echo "$EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "$body"
 
       # behaviour if PR already exists: https://github.com/marketplace/actions/create-pull-request#action-behaviour
       - name: Create Pull Request
