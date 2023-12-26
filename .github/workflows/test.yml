@@ -18,7 +18,7 @@ jobs:
         run: ./actionlint -color
         shell: bash
       - name: Test set output
-        run: echo "::set-output name=foo::bar"
+        run: echo ::set-output name="foo::bar"
 
 
   lint-cruft:
