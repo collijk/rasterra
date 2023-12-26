@@ -24,9 +24,11 @@ jobs:
         id: check_for_outdated_dependencies_2
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          body=$(poetry show -o -n)
           echo "body2<<$EOF" >> $GITHUB_OUTPUT
-          echo "$(poetry show -o -n)" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
+          echo "$body"
 
       - name: Format PR message
         if: ${{ steps.check_for_outdated_dependencies.outputs.body != 0 }}
