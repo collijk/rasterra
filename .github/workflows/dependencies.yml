@@ -20,16 +20,6 @@ jobs:
           body=$(poetry show -o -n)
           echo ::set-output name="body::$body"
 
-      - name: Gather outdated dependencies 2
-        id: check_for_outdated_dependencies_2
-        run: |
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          body=$(poetry show -o -n)
-          echo "body2<<$EOF" >> $GITHUB_OUTPUT
-          echo "$body" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
-          echo "$body"
-
       - name: Format PR message
         if: ${{ steps.check_for_outdated_dependencies.outputs.body != 0 }}
         id: get_outdated_dependencies
