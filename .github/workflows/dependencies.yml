@@ -20,6 +20,13 @@ jobs:
           body=$(poetry show -o -n)
           echo ::set-output name="body::$body"
 
+      - name: Gather outdated dependencies 2
+        id: check_for_outdated_dependencies
+        run: |
+          body=$(poetry show -o -n)
+          echo "body=$body" >> "$GITHUB_OUTPUT"
+          echo ::set-output name="body::$body"
+
       - name: Format PR message
         if: ${{ steps.check_for_outdated_dependencies.outputs.body != 0 }}
         id: get_outdated_dependencies
