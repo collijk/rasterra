@@ -17,6 +17,9 @@ jobs:
       - name: Check workflow files
         run: ./actionlint -color
         shell: bash
+      - name: Test set output
+        run: echo "::set-output name=foo::bar"
+
 
   lint-cruft:
     name: Check if automatic project update was successful
