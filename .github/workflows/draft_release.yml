@@ -20,7 +20,7 @@ jobs:
         run: |
           poetry version ${{ github.event.inputs.version }}
           version=$(poetry version --short)
-          echo ::set-output name="version::$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Update changelog
         id: changelog
         shell: bash
@@ -31,7 +31,14 @@ jobs:
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
-          echo ::set-output name="body::$body"
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          {
+            echo "body<<$EOF"
+            echo "$body"
+            echo "$EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "$body"
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
