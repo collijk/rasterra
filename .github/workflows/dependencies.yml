@@ -23,7 +23,7 @@ jobs:
       - name: Gather outdated dependencies 2
         id: check_for_outdated_dependencies_2
         run: |
-          echo "body=$(poetry show -o -n)" >> $GITHUB_OUTPUT
+          echo "body2=$(poetry show -o -n)" >> $GITHUB_OUTPUT
 
       - name: Format PR message
         if: ${{ steps.check_for_outdated_dependencies.outputs.body != 0 }}
