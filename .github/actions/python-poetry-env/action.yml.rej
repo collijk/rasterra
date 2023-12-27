@@ -1,0 +1,10 @@
+diff a/.github/actions/python-poetry-env/action.yml b/.github/actions/python-poetry-env/action.yml	(rejected hunks)
+@@ -5,7 +5,7 @@ inputs:
+   python-version:
+     required: false
+     description: 'Python version'
+-    default: '3.10'
++    default: '3.11'
+ outputs: {}
+ runs:
+   using: 'composite'
