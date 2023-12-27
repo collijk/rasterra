@@ -28,9 +28,6 @@ jobs:
           poetry run kacl-cli release ${{ steps.updated_version.outputs.version }} --modify --auto-link
           echo "" >> CHANGELOG.md
           body=$(poetry run kacl-cli get ${{ steps.updated_version.outputs.version }})
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
 
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           {
