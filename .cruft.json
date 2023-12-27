@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/collijk/python-package-cookiecutter",
-  "commit": "9df9564515161c62f7b80719b06b6f4d203b1783",
+  "commit": "275b55f7f8c9dbb9c9978aa398e92e60128e845a",
   "checkout": null,
   "context": {
     "cookiecutter": {

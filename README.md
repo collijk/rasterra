@@ -27,7 +27,7 @@ pip install rasterra
 * Clone this repository
 * Requirements:
   * [Poetry](https://python-poetry.org/)
-  * Python 3.7+
+  * Python 3.9+
 * Create a virtual environment and install the dependencies
 
 ```sh
