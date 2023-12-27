@@ -5,7 +5,7 @@ description = "A sleek, object-oriented interface designed for intuitive raster 
 authors = [
     "James Collins <collijk1@gmail.com>",
 ]
-license = "MIT"
+license = "BSD-3-Clause"
 readme = "README.md"
 
 documentation = "https://collijk.github.io/rasterra"
