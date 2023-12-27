@@ -37,7 +37,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "$body"
       - name: Commit changes
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@v9
         with:
           add: 'CHANGELOG.md pyproject.toml'
           message: 'Release ${{ steps.updated_version.outputs.version }}'
