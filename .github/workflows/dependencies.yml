@@ -17,12 +17,14 @@ jobs:
       - name: Gather outdated dependencies
         id: check_for_outdated_dependencies
         run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           body=$(poetry show -o -n)
 
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           {
-            echo "body<<EOF"
+            echo "body<<$EOF"
             echo "$body"
-            echo "EOF"
+            echo "$EOF"
           } >> "$GITHUB_OUTPUT"
           echo "$body"
 
@@ -42,10 +44,11 @@ jobs:
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
 
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           {
-            echo "body<<EOF"
+            echo "body<<$EOF"
             echo "$body"
-            echo "EOF"
+            echo "$EOF"
           } >> "$GITHUB_OUTPUT"
           echo "$body"
 
