@@ -1,3 +1,7 @@
 # API documentation
 
-:::rasterra
+::: rasterra.RasterArray
+
+::: rasterra.load_raster
+
+::: rasterra.load_mf_raster
