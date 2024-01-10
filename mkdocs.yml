@@ -15,8 +15,9 @@ theme:
 
 nav:
   - Introduction: 'index.md'
-  - api_docs.md
-  - changelog.md
+  - API Documentation: 'api_docs.md'
+  - Changelog: 'changelog.md'
+  - Contributing: 'contributing.md'
 
 watch:
   - src/rasterra
