@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import rasterio
 from rasterio.merge import merge
 
@@ -40,7 +42,7 @@ def write_raster(
         f.write(raster.to_numpy(), 1)
 
 
-def load_mf_raster(paths: list[FilePath]) -> RasterArray:
+def load_mf_raster(paths: Sequence[FilePath]) -> RasterArray:
     """Load multiple files into a single raster."""
     with rasterio.open(paths[0]) as f:
         data = f.read()
