@@ -130,6 +130,45 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """ctypes object of the raster."""
         raise TypeError("ctypes object of a raster is not defined.")
 
+    def __getitem__(
+        self, item: int | slice | tuple[int, int] | tuple[slice, slice]
+    ) -> int | float | bool | "RasterArray":
+        def _process_item(_item: int | slice) -> int | slice:
+            if isinstance(_item, int):
+                return _item
+            elif isinstance(_item, slice):
+                if _item.step is not None:
+                    raise ValueError("Slicing with a step is not supported")
+                return _item.start or 0
+            else:
+                raise TypeError("Invalid index type")
+
+        new_data = self._ndarray[item]
+        if not isinstance(new_data, np.ndarray):
+            return new_data
+
+        if isinstance(item, tuple):
+            if not len(item) == 2:
+                raise ValueError("Invalid number of indices")
+            y_item, x_item = item
+
+            yi = _process_item(y_item)
+            xi = _process_item(x_item)
+        else:
+            yi = _process_item(item)
+            xi = 0
+
+        new_transform = Affine(
+            self._transform.a,
+            self._transform.b,
+            self._transform.c + xi * self._transform.a,
+            self._transform.d,
+            self._transform.e,
+            self._transform.f - yi * self._transform.e,
+        )
+
+        return RasterArray(new_data, new_transform, self._crs, self._no_data_value)
+
     # ----------------------------------------------------------------
     # NumPy array interface
 
