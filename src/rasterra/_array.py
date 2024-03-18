@@ -9,7 +9,7 @@ from rasterio.crs import CRS
 from rasterio.warp import Resampling, reproject
 from shapely.geometry import MultiPolygon, Polygon
 
-from rasterra._features import raster_geometry_mask
+from rasterra._features import raster_geometry_mask, to_gdf
 from rasterra._plotting import Plotter
 from rasterra._typing import FilePath, Number, NumpyDtype, NumpyUFuncMethod, RawCRS
 
@@ -132,7 +132,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __getitem__(
         self, item: int | slice | tuple[int, int] | tuple[slice, slice]
-    ) -> int | float | bool | "RasterArray":
+    ):
         def _process_item(_item: int | slice) -> int | slice:
             if isinstance(_item, int):
                 return _item
@@ -164,7 +164,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             self._transform.c + xi * self._transform.a,
             self._transform.d,
             self._transform.e,
-            self._transform.f - yi * self._transform.e,
+            self._transform.f + yi * self._transform.e,
         )
 
         return RasterArray(new_data, new_transform, self._crs, self._no_data_value)
@@ -295,18 +295,26 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
                 self.width,
             )
         else:
-            return np.linspace(self.x_min, self.x_max, self.width)
+            return np.linspace(
+                self.x_min, 
+                self.x_max - self.x_resolution, 
+                self.width,
+            )
 
     def y_coordinates(self, center: bool = False) -> np.ndarray:
         """y coordinates of the raster."""
         if center:
             return np.linspace(
-                self.y_min + self.y_resolution / 2,
-                self.y_max - self.y_resolution / 2,
+                self.y_min - self.y_resolution / 2,
+                self.y_max + self.y_resolution / 2,
                 self.height,
             )
         else:
-            return np.linspace(self.y_min, self.y_max, self.height)
+            return np.linspace(
+                self.y_min - self.y_resolution, 
+                self.y_max, 
+                self.height,
+            )
 
     @property
     def bounds(self) -> tuple[float, float, float, float]:
@@ -342,7 +350,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             source=self._ndarray,
             src_transform=self._transform,
             src_crs=self._crs,
-            src_no_data_value=self._no_data_value,
+            src_nodata=self._no_data_value,
             dst_crs=new_crs,
             resampling=resampling,
         )
@@ -407,7 +415,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             source=self._ndarray,
             src_transform=self._transform,
             src_crs=self._crs,
-            src_no_data_value=self._no_data_value,
+            src_nodata=self._no_data_value,
             destination=destination,
             dst_crs=self._crs,
             resampling=resampling,
@@ -428,7 +436,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             source=self._ndarray,
             src_transform=self._transform,
             src_crs=self._crs,
-            src_no_data_value=self._no_data_value,
+            src_nodata=self._no_data_value,
             destination=destination,
             dst_transform=target.transform,
             dst_crs=target._crs,
@@ -516,6 +524,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         from rasterra._io import write_raster
 
         write_raster(self, path)
+
+    def to_gdf(self) -> gpd.GeoDataFrame:
+        return to_gdf(self)
 
     @property
     def plot(self) -> Plotter:
