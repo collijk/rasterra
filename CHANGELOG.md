@@ -30,7 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Numpy array interface
 - Fixed up the CI for package maintenance, CI, and releases.
 
-[Unreleased]: https://github.com/collijk/rasterra/compare/0.5.2...master
+[Unreleased]: https://github.com/collijk/rasterra/compare/0.5.2...main
 [0.5.2]: https://github.com/collijk/rasterra/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/collijk/rasterra/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/collijk/rasterra/tree/0.5.0

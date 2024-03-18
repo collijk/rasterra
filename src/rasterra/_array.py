@@ -130,9 +130,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """ctypes object of the raster."""
         raise TypeError("ctypes object of a raster is not defined.")
 
-    def __getitem__(
-        self, item: int | slice | tuple[int, int] | tuple[slice, slice]
-    ):
+    def __getitem__(self, item: int | slice | tuple[int, int] | tuple[slice, slice]):  # type: ignore[no-untyped-def]
         def _process_item(_item: int | slice) -> int | slice:
             if isinstance(_item, int):
                 return _item
@@ -296,8 +294,8 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             )
         else:
             return np.linspace(
-                self.x_min, 
-                self.x_max - self.x_resolution, 
+                self.x_min,
+                self.x_max - self.x_resolution,
                 self.width,
             )
 
@@ -311,8 +309,8 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             )
         else:
             return np.linspace(
-                self.y_min - self.y_resolution, 
-                self.y_max, 
+                self.y_min - self.y_resolution,
+                self.y_max,
                 self.height,
             )
 

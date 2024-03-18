@@ -1,4 +1,5 @@
 import math
+import typing
 
 import geopandas as gpd
 import numpy as np
@@ -7,6 +8,9 @@ from rasterio.features import bounds, rasterize
 from rasterio.windows import Window
 from shapely import box
 from shapely.geometry import MultiPolygon, Polygon
+
+if typing.TYPE_CHECKING:
+    from rasterra import RasterArray
 
 
 def _geometry_window(
@@ -100,13 +104,15 @@ def raster_geometry_mask(
     return mask, transform, window
 
 
-def to_gdf(raster) -> gpd.GeoDataFrame:
+def to_gdf(raster: "RasterArray") -> gpd.GeoDataFrame:
     xmin = raster.x_coordinates()
     ymax = raster.y_coordinates()[::-1]
     xl, yt = np.meshgrid(xmin, ymax)
     xr = xl + raster.x_resolution
     yb = yt + raster.y_resolution
     pixels = box(xl.flatten(), yb.flatten(), xr.flatten(), yt.flatten())
-    gdf = gpd.GeoDataFrame({'value': raster.to_numpy().flatten()}, geometry=pixels, crs=raster.crs)
+    gdf = gpd.GeoDataFrame(
+        {"value": raster.to_numpy().flatten()}, geometry=pixels, crs=raster.crs
+    )
     gdf.__from_raster__ = True
     return gdf
