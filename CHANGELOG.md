@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fixed a bug with nodata call into rasterio.warp.resample
+- Fixed implementation of x_coordinates and y_coordinates
+- Fixed documentation build process
+
+### Added
+- Added a __getitem__ method to the RasterArray class
+- Added a to_gdf method and backing function to convert raster data to vector data.
+- Contributing guide and a better readme
 
 ## [0.5.2] - 2023-12-27
 ### Fixed
