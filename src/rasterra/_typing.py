@@ -9,8 +9,9 @@ FilePath: typing.TypeAlias = str | bytes | os.PathLike[str]
 
 RawCRS: typing.TypeAlias = _CRS | str | int | dict[str, typing.Any]
 
-SupportedDtypes: typing.TypeAlias = (
-    np.int8
+DataDtypes: typing.TypeAlias = (
+    np.bool_
+    | np.int8
     | np.int16
     | np.int32
     | np.int64
@@ -25,7 +26,8 @@ SupportedDtypes: typing.TypeAlias = (
     | np.float64
     | np.float128
 )
-RasterData: typing.TypeAlias = npt.NDArray[SupportedDtypes]
+SupportedDtypes: typing.TypeAlias = int | bool | float | DataDtypes
+RasterData: typing.TypeAlias = npt.NDArray[DataDtypes]
 RasterMask: typing.TypeAlias = npt.NDArray[np.bool_]
 NumpyUFuncMethod: typing.TypeAlias = typing.Literal[
     "__call__",

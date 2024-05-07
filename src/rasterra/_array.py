@@ -13,6 +13,7 @@ from shapely.geometry import MultiPolygon, Polygon
 from rasterra._features import raster_geometry_mask, to_gdf
 from rasterra._plotting import Plotter
 from rasterra._typing import (
+    DataDtypes,
     FilePath,
     NumpyUFuncMethod,
     RasterData,
@@ -107,7 +108,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         return self._ndarray.base
 
     @property
-    def dtype(self) -> np.dtype[SupportedDtypes]:
+    def dtype(self) -> np.dtype[DataDtypes]:
         """Data type of the raster."""
         return self._ndarray.dtype
 
@@ -183,7 +184,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     # ----------------------------------------------------------------
     # NumPy array interface
 
-    def astype(self, dtype: np.dtype[SupportedDtypes]) -> "RasterArray":
+    def astype(self, dtype: DataDtypes) -> "RasterArray":
         """Cast the raster to a new data type."""
         return RasterArray(
             self._ndarray.astype(dtype), self._transform, self._crs, self._no_data_value
@@ -193,7 +194,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Convert the raster to a NumPy array."""
         return self._ndarray.copy()
 
-    def __array__(self, dtype: np.dtype[SupportedDtypes] | None = None) -> RasterData:
+    def __array__(self, dtype: DataDtypes | None = None) -> RasterData:
         return np.asarray(self._ndarray, dtype=dtype)
 
     def __array_ufunc__(
@@ -401,7 +402,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             sign_match = np.sign(self._no_data_value) == np.sign(other_no_data_value)
             return other_inf and sign_match  # type: ignore[no-any-return]
         else:
-            return self._no_data_value == other_no_data_value  # type: ignore[no-any-return]
+            return self._no_data_value == other_no_data_value
 
     def unset_no_data_value(self) -> "RasterArray":
         """Unset value representing no data."""
