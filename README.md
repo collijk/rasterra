@@ -33,7 +33,6 @@ pip install rasterra
 
 ## Usage
 
-
 ### File I/O
 
 Reading and writing raster data is done using the `load_raster` and `to_file` functions.

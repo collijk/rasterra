@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import rasterio
 from rasterio.merge import merge
@@ -9,6 +9,7 @@ from rasterra._typing import FilePath
 
 def load_raster(path: FilePath) -> RasterArray:
     """Load a raster from a file."""
+
     with rasterio.open(path) as f:
         data = f.read()
         if data.shape[0] == 1:
@@ -19,7 +20,8 @@ def load_raster(path: FilePath) -> RasterArray:
                 no_data_value=f.nodata,
             )
         else:
-            raise NotImplementedError("Only single-band rasters are supported.")
+            msg = "Only single-band rasters are supported"
+            raise NotImplementedError(msg)
 
 
 def write_raster(
@@ -48,7 +50,6 @@ def load_mf_raster(paths: Sequence[FilePath]) -> RasterArray:
         data = f.read()
         if data.shape[0] == 1:
             merged, transform = merge(paths)
-            assert merged.shape[0] == 1
             return RasterArray(
                 merged[0],
                 transform=transform,
@@ -56,4 +57,5 @@ def load_mf_raster(paths: Sequence[FilePath]) -> RasterArray:
                 no_data_value=f.nodata,
             )
         else:
-            raise NotImplementedError("Only single-band rasters are supported.")
+            msg = "Only single-band rasters are supported."
+            raise NotImplementedError(msg)

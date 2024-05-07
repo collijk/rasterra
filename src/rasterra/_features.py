@@ -9,6 +9,8 @@ from rasterio.windows import Window
 from shapely import box
 from shapely.geometry import MultiPolygon, Polygon
 
+from rasterra._typing import RasterData
+
 if typing.TYPE_CHECKING:
     from rasterra import RasterArray
 
@@ -46,9 +48,7 @@ def _geometry_window(
 
     # Make sure that window overlaps raster
     raster_window = Window(0, 0, data_width, data_height)
-    window = window.intersection(raster_window)
-
-    return window
+    return window.intersection(raster_window)
 
 
 def _window_transform(
@@ -64,14 +64,16 @@ def raster_geometry_mask(
     data_width: int,
     data_height: int,
     shapes: list[Polygon | MultiPolygon],
+    *,
     all_touched: bool = False,
     invert: bool = False,
     crop: bool = False,
     pad_x: float = 0.0,
     pad_y: float = 0.0,
-) -> tuple[np.ndarray, Affine, Window]:
+) -> tuple[RasterData, Affine, Window]:
     if crop and invert:
-        raise ValueError("crop and invert cannot both be True.")
+        msg = "Crop and invert cannot both be True"
+        raise ValueError(msg)
 
     window = _geometry_window(
         data_transform,

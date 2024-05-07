@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 import affine
 import matplotlib.pyplot as plt
@@ -8,10 +8,15 @@ from matplotlib.colors import Colormap, Normalize
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from rasterio.plot import plotting_extent
 
+from rasterra._typing import RasterData, RasterMask
+
 
 class Plotter:
     def __init__(
-        self, data: np.ndarray, data_mask: np.ndarray, transform: affine.Affine
+        self,
+        data: RasterData,
+        data_mask: RasterMask,
+        transform: affine.Affine,
     ) -> None:
         self._data = data
         self._mask = data_mask
@@ -19,16 +24,17 @@ class Plotter:
 
     def __call__(
         self,
-        ax: Union[Axes, None] = None,
-        cmap: Union[str, Colormap] = "viridis",
-        vmin: Union[float, None] = None,
-        vmax: Union[float, None] = None,
-        under_color: Union[str, None] = None,
-        norm: Union[Normalize, None] = None,
+        ax: Axes | None = None,
+        cmap: str | Colormap = "viridis",
+        vmin: float | None = None,
+        vmax: float | None = None,
+        under_color: str | None = None,
+        norm: Normalize | None = None,
         **kwargs: Any,
     ) -> Axes:
         if (vmin is not None or vmax is not None) and norm is not None:
-            raise ValueError("Cannot pass both vmin/vmax and norm.")
+            msg = "Cannot pass both vmin/vmax and norm."
+            raise ValueError(msg)
         if norm is None:
             norm = Normalize(vmin=vmin, vmax=vmax)
 
@@ -50,12 +56,12 @@ class Plotter:
         self,
         norm: Normalize,
         nbins: int = 50,
-        cmap: Union[str, Colormap] = "viridis",
-        under_color: Union[str, None] = None,
+        cmap: str | Colormap = "viridis",
+        under_color: str | None = None,
     ) -> None:
         """Test a normalization of the data for plotting."""
-        vmin = norm.vmin
-        vmax = norm.vmax
+        vmin = norm.vmin if norm.vmin is not None else self._data.min()
+        vmax = norm.vmax if norm.vmax is not None else self._data.max()
         mask = (vmin <= self._data) & (self._data <= vmax) & ~self._mask
         data = self._data[mask].flatten()
 
@@ -80,7 +86,7 @@ class Plotter:
 
 
 def _make_hist_plot(
-    data: np.ndarray,
+    data: RasterData,
     nbins: int,
     title: str,
     ax: Axes,
@@ -99,16 +105,16 @@ def _make_hist_plot(
 
 
 def _make_image_plot(
-    data: np.ndarray,
-    mask: np.ndarray,
+    data: RasterData,
+    mask: RasterMask,
     norm: Normalize,
-    cmap: Union[str, Colormap],
-    under_color: Union[str, None],
+    cmap: str | Colormap,
+    under_color: str | None,
     ax: Axes,
     **kwargs: Any,
 ) -> Axes:
     """Plot a histogram of the data."""
-    masked: np.ma.MaskedArray = np.ma.masked_array(data, mask=mask)
+    masked = np.ma.masked_array(data, mask=mask)  # type: ignore[no-untyped-call,var-annotated]
     im = ax.imshow(
         masked,
         cmap=cmap,

@@ -18,6 +18,9 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
@@ -37,34 +40,19 @@ rasterio = "^1.3.9"
 matplotlib = "^3.8.1"
 geopandas = "^0.14.1"
 
-[tool.poetry.dev-dependencies]
-autoflake = "*"
-black = "*"
-flake8 = "*"
-flake8-bugbear = "*"
-flake8-builtins = "*"
-flake8-comprehensions = "*"
-flake8-debugger = "*"
-flake8-eradicate = "*"
-flake8-logging-format = "*"
-isort = "*"
-mkdocstrings = {version = ">=0.18", extras = ["python"]}
+[tool.poetry.group.dev.dependencies]
+mkdocstrings = {version = ">=0.23", extras = ["python"]}
+mkdocs = "*"
 mkdocs-material = "*"
 mkdocs-table-reader-plugin = "*"
 mypy = "*"
-pep8-naming = "*"
 pre-commit = "*"
 pymdown-extensions = "*"
 pytest = "*"
 pytest-github-actions-annotate-failures = "*"
 pytest-cov = "*"
 python-kacl = "*"
-pyupgrade = "*"
-tryceratops = "*"
-
-[tool.poetry.group.dev.dependencies]
-mkdocs = "^1.5.3"
-mkdocs-material = "^9.5.2"
+ruff = ">=0.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -73,13 +61,43 @@ build-backend = "poetry.core.masonry.api"
 [project.scripts]
 my-cli = "rasterra.cli:main"
 
-[tool.isort]
-profile = "black"
-src_paths = ["src", "tests"]
+[tool.ruff]
+target-version = "py310" # The lowest supported version
 
-[tool.black]
-target-version = ["py310", "py311", "py312"]
-include = '\.pyi?$'
+[tool.ruff.lint]
+# By default, enable all the lint rules.
+# Add to the ignore list below if you don't want some rules.
+# If you need some ignores for certain modules, see tool.ruff.lint.per-file-ignores below.
+# For individual ignore cases, prefer inline `# noqa`s within the code.
+select = ["ALL"]
+ignore = [
+    "COM812",   # flake8 missing trailing comma, fomatter handles
+    "ISC001",   # Implicit string concatenation is not allowed
+    "ANN",      # Type hints related, let mypy handle these.
+    "D",        # Docstrings related, way too strict to our taste
+    "RET505",   # Else after return, too many false positives.
+    "UP038",    # Union types in isinstace/issubclass checks; not fully supported
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",     # "Use of `assert` detected"
+    "ARG",      # "Unused function argument". Fixtures are often unused.
+    "S105",     # "Possible hardcoded password".
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 9
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+    "pydantic.validator",
+    "pydantic.root_validator",
+]
 
 [tool.pytest.ini_options]
 addopts = """\
@@ -97,15 +115,13 @@ exclude_lines = [
 ]
 
 [tool.mypy]
+# This is the global mypy configuration.
+# Avoid changing this!
+strict = true  # See all the enabled flags `mypy --help | grep -A 10 'Strict mode'`
 disallow_any_unimported = false
-disallow_untyped_defs = true
-no_implicit_optional = true
-strict_equality = true
-warn_unused_ignores = true
-warn_redundant_casts = true
-warn_return_any = false
-check_untyped_defs = true
-show_error_codes = true
+plugins = [
+    "numpy.typing.mypy_plugin"
+]
 
 [[tool.mypy.overrides]]
 module = [
@@ -117,8 +133,8 @@ module = [
 ]
 ignore_missing_imports = true
 
-[tool.tryceratops]
-ignore=["TRY003"]
-
-[tool.autoflake]
-ignore-init-module-imports = true
+# [[tool.mypy.overrides]]
+# module = [
+#   "tests/my_thing/test_my_thing",
+# ]
+# disallow_untyped_defs = false
