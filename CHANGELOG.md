@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Fixed
-- Use generic floating and integer types for data typing.
+- Cover all float and int dtypes for RasterArray data.
 
 ## [0.5.5] - 2024-05-07
 ### Added
