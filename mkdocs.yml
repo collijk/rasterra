@@ -70,8 +70,6 @@ plugins:
           options:
             show_signature_annotations: true
             show_submodules: true
-
-
 extra_javascript:
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - _javascript/tablesort.js

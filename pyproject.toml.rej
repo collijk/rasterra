@@ -1,0 +1,90 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -18,9 +18,11 @@ classifiers = [
+   "Operating System :: OS Independent",
+   "Programming Language :: Python",
+   "Programming Language :: Python :: 3",
+-  "Programming Language :: Python :: 3.7",
+   "Programming Language :: Python :: 3.8",
+   "Programming Language :: Python :: 3.9",
++  "Programming Language :: Python :: 3.10",
++  "Programming Language :: Python :: 3.11",
++  "Programming Language :: Python :: 3.12",
+   "Topic :: Software Development :: Libraries :: Python Modules",
+   "Typing :: Typed",
+ ]
+@@ -33,30 +35,18 @@ packages = [
+ python = ">=3.10, <4.0"
+ click = "*"
+ 
+-[tool.poetry.dev-dependencies]
+-autoflake = "*"
+-black = "*"
+-flake8 = "*"
+-flake8-bugbear = "*"
+-flake8-builtins = "*"
+-flake8-comprehensions = "*"
+-flake8-debugger = "*"
+-flake8-eradicate = "*"
+-flake8-logging-format = "*"
+-isort = "*"
+-mkdocstrings = {version = ">=0.18", extras = ["python"]}
++[tool.poetry.group.dev.dependencies]
++mkdocstrings = {version = ">=0.23", extras = ["python"]}
+ mkdocs-material = "*"
+ mkdocs-table-reader-plugin = "*"
+ mypy = "*"
+-pep8-naming = "*"
+ pre-commit = "*"
+ pymdown-extensions = "*"
+ pytest = "*"
+ pytest-github-actions-annotate-failures = "*"
+ pytest-cov = "*"
+ python-kacl = "*"
+-pyupgrade = "*"
+-tryceratops = "*"
++ruff = ">=0.2.0"
+ 
+ [build-system]
+ requires = ["poetry-core>=1.0.0"]
+@@ -89,24 +102,23 @@ exclude_lines = [
+ ]
+ 
+ [tool.mypy]
+-disallow_any_unimported = false
+-disallow_untyped_defs = true
+-no_implicit_optional = true
+-strict_equality = true
+-warn_unused_ignores = true
+-warn_redundant_casts = true
+-warn_return_any = false
+-check_untyped_defs = true
+-show_error_codes = true
+-
+-# Uncomment the following lines and add packages to the "module" list to
+-# handle mypy errors when 3rd party packages are not typed.
++# This is the global mypy configuration.
++# Avoid changing this!
++strict = true  # See all the enabled flags `mypy --help | grep -A 10 'Strict mode'`
++disallow_any_unimported = true
++
++# If you need to ignore something for some specific module,
++# add overrides for them. Avoid changing the global config!
++# For example:
+ # [[tool.mypy.overrides]]
+-# module = []
++# module = [
++#  "my_unpyted_dependency1.*",
++#  "my_unpyted_dependency2.*"
++# ]
+ # ignore_missing_imports = true
+ 
+-[tool.tryceratops]
+-ignore=["TRY003"]
+-
+-[tool.autoflake]
+-ignore-init-module-imports = true
++# [[tool.mypy.overrides]]
++# module = [
++#   "tests/my_thing/test_my_thing",
++# ]
++# disallow_untyped_defs = false

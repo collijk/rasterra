@@ -73,13 +73,36 @@ build-backend = "poetry.core.masonry.api"
 [project.scripts]
 my-cli = "rasterra.cli:main"
 
-[tool.isort]
-profile = "black"
-src_paths = ["src", "tests"]
+[tool.ruff]
+target-version = "py310" # The lowest supported version
 
-[tool.black]
-target-version = ["py310", "py311", "py312"]
-include = '\.pyi?$'
+[tool.ruff.lint]
+# By default, enable all the lint rules.
+# Add to the ignore list below if you don't want some rules.
+# If you need some ignores for certain modules, see tool.ruff.lint.per-file-ignores below.
+# For individual ignore cases, prefer inline `# noqa`s within the code.
+select = ["ALL"]
+ignore = [
+    "ANN",      # Type hints related, let mypy handle these.
+    "D",        # Docstrings related, way too strict to our taste
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",     # "Use of `assert` detected"
+    "ARG",      # "Unused function argument". Fixtures are often unused.
+    "S105",     # "Possible hardcoded password".
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+    "pydantic.validator",
+    "pydantic.root_validator",
+]
 
 [tool.pytest.ini_options]
 addopts = """\
