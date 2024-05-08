@@ -184,7 +184,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     # ----------------------------------------------------------------
     # NumPy array interface
 
-    def astype(self, dtype: np.dtype[DataDtypes]) -> "RasterArray":
+    def astype(self, dtype: type[DataDtypes]) -> "RasterArray":
         """Cast the raster to a new data type."""
         return RasterArray(
             self._ndarray.astype(dtype), self._transform, self._crs, self._no_data_value
