@@ -194,7 +194,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Convert the raster to a NumPy array."""
         return self._ndarray.copy()
 
-    def __array__(self, dtype: DataDtypes | None = None) -> RasterData:
+    def __array__(self, dtype: type[DataDtypes] | None = None) -> RasterData:
         return np.asarray(self._ndarray, dtype=dtype)
 
     def __array_ufunc__(
