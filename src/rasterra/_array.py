@@ -131,7 +131,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         raise NotImplementedError(msg)
 
     @property
-    def flat(self) -> np.flatiter[RasterData]:
+    def flat(self) -> np.flatiter:  # type: ignore[type-arg]
         """Flat iterator of the raster."""
         return self._ndarray.flat
 
