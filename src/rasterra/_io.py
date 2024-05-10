@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Any
 
 import rasterio
 from rasterio.merge import merge
@@ -27,6 +28,7 @@ def load_raster(path: FilePath) -> RasterArray:
 def write_raster(
     raster: RasterArray,
     path: FilePath,
+    **kwargs: Any,
 ) -> None:
     """Write a raster to a file."""
     meta = {
@@ -38,6 +40,7 @@ def write_raster(
         "crs": raster.crs,
         "transform": raster.transform,
         "nodata": raster.no_data_value,
+        **kwargs,
     }
 
     with rasterio.open(path, "w", **meta) as f:

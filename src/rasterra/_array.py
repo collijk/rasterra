@@ -545,11 +545,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         out += f"dtype         : {self._ndarray.dtype}\n"
         return out
 
-    def to_file(self, path: FilePath) -> None:
+    def to_file(self, path: FilePath, **kwargs: typing.Any) -> None:
         """Write the raster to a file."""
         from rasterra._io import write_raster
 
-        write_raster(self, path)
+        write_raster(self, path, **kwargs)
 
     def to_gdf(self) -> gpd.GeoDataFrame:
         return to_gdf(self)
