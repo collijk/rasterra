@@ -1,17 +1,33 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, TypeAlias
 
 import rasterio
 from rasterio.merge import merge
+from shapely import Polygon
 
 from rasterra._array import RasterArray
 from rasterra._typing import FilePath
 
+Bounds: TypeAlias = (
+    tuple[float, float, float, float] | tuple[int, int, int, int] | Polygon
+)
 
-def load_raster(path: FilePath, **kwargs: Any) -> RasterArray:
+
+def load_raster(
+    path: FilePath,
+    bounds: Bounds | None = None,
+) -> RasterArray:
     """Load a raster from a file."""
 
     with rasterio.open(path) as f:
+        if bounds is not None:
+            if isinstance(bounds, Polygon):
+                bounds = bounds.bounds
+            window = f.window(*bounds)
+            kwargs = {"window": window}
+        else:
+            kwargs = {}
+
         data = f.read(**kwargs)
         if data.shape[0] == 1:
             return RasterArray(
