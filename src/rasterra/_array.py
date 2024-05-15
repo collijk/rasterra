@@ -197,7 +197,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     def __array__(self, dtype: type[DataDtypes] | None = None) -> RasterData:
         return np.asarray(self._ndarray, dtype=dtype)
 
-    def __array_ufunc__(
+    def __array_ufunc__(  # noqa: C901
         self,
         ufunc: np.ufunc,
         method: NumpyUFuncMethod,
@@ -224,6 +224,12 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
                     msg = "Affine transforms do not match."
                     raise ValueError(msg)
 
+        # Propagate the no_data_value to the output array.
+        no_data_mask = self.no_data_mask
+        for x in inputs:
+            if isinstance(x, RasterArray):
+                no_data_mask |= x.no_data_mask
+
         # Defer to the implementation of the ufunc on unwrapped values.
         inputs = tuple(x._ndarray if isinstance(x, RasterArray) else x for x in inputs)  # noqa: SLF001
         if out:
@@ -232,6 +238,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
                 for x in out
             )
         result = getattr(ufunc, method)(*inputs, **kwargs)
+        result[no_data_mask] = self._no_data_value
 
         if type(result) is tuple:
             # multiple return values
