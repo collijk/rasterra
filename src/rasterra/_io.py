@@ -3,6 +3,7 @@ from typing import Any, TypeAlias
 
 import rasterio
 from rasterio.merge import merge
+from rasterio.windows import from_bounds
 from shapely import Polygon
 
 from rasterra._array import RasterArray
@@ -23,7 +24,7 @@ def load_raster(
         if bounds is not None:
             if isinstance(bounds, Polygon):
                 bounds = bounds.bounds
-            window = f.window(*bounds)
+            window = from_bounds(*bounds, transform=f.transform)
             kwargs = {"window": window}
         else:
             kwargs = {}
