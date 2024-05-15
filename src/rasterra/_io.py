@@ -8,11 +8,11 @@ from rasterra._array import RasterArray
 from rasterra._typing import FilePath
 
 
-def load_raster(path: FilePath) -> RasterArray:
+def load_raster(path: FilePath, **kwargs: Any) -> RasterArray:
     """Load a raster from a file."""
 
     with rasterio.open(path) as f:
-        data = f.read()
+        data = f.read(**kwargs)
         if data.shape[0] == 1:
             return RasterArray(
                 data[0],
