@@ -550,7 +550,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
 
         if method == "nearest":
             x_indices = np.searchsorted(self.x_coordinates(), x_coordinates)
-            y_indices = np.searchsorted(self.y_coordinates(), y_coordinates)
+            y_indices = np.searchsorted(
+                self.y_coordinates(), y_coordinates, side="right"
+            )
+            # Flip y indices to match raster coordinates
+            y_indices = self.height - y_indices
             return self._ndarray[y_indices, x_indices].copy()
         else:
             msg = "Only 'nearest' method is supported."
