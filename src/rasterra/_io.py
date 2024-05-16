@@ -25,13 +25,12 @@ def load_raster(
             if isinstance(bounds, Polygon):
                 bounds = bounds.bounds
             window = from_bounds(*bounds, transform=f.transform)
-            kwargs = {"window": window}
+            data = f.read(window=window, boundless=True)
             transform = f.window_transform(window)
         else:
-            kwargs = {}
+            data = f.read()
             transform = f.transform
 
-        data = f.read(**kwargs)
         if data.shape[0] == 1:
             return RasterArray(
                 data[0],
