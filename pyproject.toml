@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rasterra"
-version = "0.5.10"
+version = "0.5.11"
 description = "A sleek, object-oriented interface designed for intuitive raster data manipulation in Python."
 authors = [
     "James Collins <collijk1@gmail.com>",
