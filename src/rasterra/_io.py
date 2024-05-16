@@ -26,14 +26,16 @@ def load_raster(
                 bounds = bounds.bounds
             window = from_bounds(*bounds, transform=f.transform)
             kwargs = {"window": window}
+            transform = f.window_transform(window)
         else:
             kwargs = {}
+            transform = f.transform
 
         data = f.read(**kwargs)
         if data.shape[0] == 1:
             return RasterArray(
                 data[0],
-                transform=f.transform,
+                transform=transform,
                 crs=f.crs,
                 no_data_value=f.nodata,
             )
