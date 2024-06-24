@@ -32,7 +32,7 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.10, <3.13"
 pyproj = "^3.6.0"
-numpy = "^1.26.0"
+numpy = "^2.0.0"
 affine = "^2.4.0"
 shapely = "^2.0.1"
 click = "*"
