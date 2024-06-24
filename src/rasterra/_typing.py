@@ -35,5 +35,5 @@ NumpyUFuncMethod: typing.TypeAlias = typing.Literal[
     "reduceat",
     "accumulate",
     "outer",
-    "inner",
+    "at",
 ]
