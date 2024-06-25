@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.14] - 2024-06-25
 ### Fixed
 - Removed support for float128, which doesn't work on apple silicon.
 
@@ -77,7 +79,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Numpy array interface
 - Fixed up the CI for package maintenance, CI, and releases.
 
-[Unreleased]: https://github.com/collijk/rasterra/compare/0.5.13...master
+[Unreleased]: https://github.com/collijk/rasterra/compare/0.5.14...master
+[0.5.14]: https://github.com/collijk/rasterra/compare/0.5.13...0.5.14
 [0.5.13]: https://github.com/collijk/rasterra/compare/0.5.12...0.5.13
 [0.5.12]: https://github.com/collijk/rasterra/compare/0.5.11...0.5.12
 [0.5.11]: https://github.com/collijk/rasterra/compare/0.5.10...0.5.11
