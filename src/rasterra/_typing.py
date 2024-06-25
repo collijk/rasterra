@@ -24,7 +24,6 @@ DataDtypes: typing.TypeAlias = (
     | np.float16
     | np.float32
     | np.float64
-    | np.float128
 )
 SupportedDtypes: typing.TypeAlias = int | bool | float | DataDtypes
 RasterData: typing.TypeAlias = npt.NDArray[DataDtypes]
