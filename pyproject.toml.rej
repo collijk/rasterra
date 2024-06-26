@@ -1,0 +1,24 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -18,8 +18,6 @@ classifiers = [
+   "Operating System :: OS Independent",
+   "Programming Language :: Python",
+   "Programming Language :: Python :: 3",
+-  "Programming Language :: Python :: 3.8",
+-  "Programming Language :: Python :: 3.9",
+   "Programming Language :: Python :: 3.10",
+   "Programming Language :: Python :: 3.11",
+   "Programming Language :: Python :: 3.12",
+@@ -65,8 +63,13 @@ target-version = "py310" # The lowest supported version
+ # For individual ignore cases, prefer inline `# noqa`s within the code.
+ select = ["ALL"]
+ ignore = [
++    "COM812",   # flake8 missing trailing comma, formatter handles
++    "ISC001",   # Implicit string concatenation
+     "ANN",      # Type hints related, let mypy handle these.
+     "D",        # Docstrings related, way too strict to our taste
++    "RUF007",   # zip is idiomatic, this is a dumb check
++    "RET505",   # Else after return, makes a lot of false positives
++    "E501",     # Line too long, this is autoformatted
+ ]
+ 
+ [tool.ruff.lint.per-file-ignores]
