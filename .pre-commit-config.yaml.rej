@@ -1,0 +1,10 @@
+diff a/.pre-commit-config.yaml b/.pre-commit-config.yaml	(rejected hunks)
+@@ -23,7 +23,7 @@ repos:
+       - id: ruff
+         name: ruff
+         # Add --fix, in case you want it to autofix when this hook runs
+-        entry: poetry run ruff check --force-exclude
++        entry: poetry run ruff check --force-exclude --fix
+         require_serial: true
+         language: system
+         types: [ python ]
