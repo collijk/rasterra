@@ -373,19 +373,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         if self._crs is None:
             msg = "Coordinate reference system is not set."
             raise ValueError(msg)
-        resampling = _RESAMPLING_MAP[resampling]
-        new_crs = CRS.from_user_input(new_crs)
-
-        new_data, transform = reproject(
-            source=self._ndarray,
-            src_transform=self._transform,
-            src_crs=self._crs,
-            src_nodata=self._no_data_value,
+        return self.reproject(
             dst_crs=new_crs,
             resampling=resampling,
-        )
-        return RasterArray(
-            new_data[0], transform, new_crs, no_data_value=self._no_data_value
         )
 
     @property
@@ -436,48 +426,53 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
 
     def resample(self, scale: float, resampling: str = "nearest") -> "RasterArray":
         """Resample the raster."""
-        resampling = _RESAMPLING_MAP[resampling]
-
         dest_width = int(self.width * scale)
         dest_height = int(self.height * scale)
         destination = np.empty((dest_height, dest_width), dtype=self._ndarray.dtype)
-
-        new_data, transform = reproject(
-            source=self._ndarray,
-            src_transform=self._transform,
-            src_crs=self._crs,
-            src_nodata=self._no_data_value,
+        return self.reproject(
             destination=destination,
             dst_crs=self._crs,
             resampling=resampling,
-        )
-
-        return RasterArray(
-            new_data, transform, self._crs, no_data_value=self.no_data_value
         )
 
     def resample_to(
         self, target: "RasterArray", resampling: str = "nearest"
     ) -> "RasterArray":
         """Resample the raster to match the resolution of another raster."""
+        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)  # noqa: SLF001
+        return self.reproject(
+            destination=destination,
+            dst_transform=target.transform,
+            dst_crs=target._crs,  # noqa: SLF001
+            resampling=resampling,
+        )
+
+    def reproject(
+        self,
+        destination: RasterData | None = None,
+        dst_transform: Affine | None = None,
+        dst_crs: RawCRS | None = None,
+        resampling: str = "nearest",
+    ) -> "RasterArray":
+        """Reproject the raster to match the resolution of another raster."""
         resampling = _RESAMPLING_MAP[resampling]
 
-        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)  # noqa: SLF001
+        dst_crs = self._crs if dst_crs is None else CRS.from_user_input(dst_crs)
         new_data, transform = reproject(
             source=self._ndarray,
             src_transform=self._transform,
             src_crs=self._crs,
             src_nodata=self._no_data_value,
             destination=destination,
-            dst_transform=target.transform,
-            dst_crs=target._crs,  # noqa: SLF001
+            dst_transform=dst_transform,
+            dst_crs=dst_crs,
             resampling=resampling,
         )
         return RasterArray(
             new_data,
             transform,
-            target._crs,  # noqa: SLF001
-            no_data_value=self.no_data_value,
+            dst_crs,
+            self.no_data_value,
         )
 
     def _coerce_to_shapely(
