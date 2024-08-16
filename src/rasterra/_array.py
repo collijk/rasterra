@@ -309,6 +309,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Resolution in y direction."""
         return self.transform.e  # type: ignore[no-any-return]
 
+    @property
+    def resolution(self) -> tuple[float, float]:
+        """Resolution in x and y directions."""
+        return self.x_resolution, self.y_resolution
+
     def x_coordinates(self, *, center: bool = False) -> npt.NDArray[np.float64]:
         """x coordinates of the raster."""
         if center:
