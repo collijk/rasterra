@@ -451,6 +451,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         self,
         destination: RasterData | None = None,
         dst_transform: Affine | None = None,
+        dst_resolution: float | tuple[float, float] | None = None,
         dst_crs: RawCRS | None = None,
         resampling: str = "nearest",
     ) -> "RasterArray":
@@ -465,6 +466,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             src_nodata=self._no_data_value,
             destination=destination,
             dst_transform=dst_transform,
+            dst_resolution=dst_resolution,
             dst_crs=dst_crs,
             resampling=resampling,
         )
