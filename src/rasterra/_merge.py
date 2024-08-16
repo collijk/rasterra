@@ -7,26 +7,40 @@ from rasterio import merge as rio_merge
 from rasterra._array import RasterArray
 
 
+def validate_property(
+    rasters: list[RasterArray],
+    property_name: str,
+    *,
+    is_nan: bool = False,
+) -> None:
+    ref_property = getattr(rasters[0], property_name)
+
+    def _property_matches(r: RasterArray) -> bool:
+        return bool(
+            (is_nan and np.isnan(getattr(r, property_name)))
+            or getattr(r, property_name) == ref_property
+        )  # fmt: skip
+
+    if not all(_property_matches(raster) for raster in rasters):
+        msg = f"All rasters must have the same {property_name}."
+        raise ValueError(msg)
+
+
 def merge(
     rasters: list[RasterArray],
     method: Literal["first", "last", "min", "max", "sum", "count"] = "first",
 ) -> RasterArray:
     """Merge a list of rasters into a single raster."""
-    match_properties = [
-        "crs",
-        "dtype",
-        "no_data_value",
-        "x_resolution",
-        "y_resolution",
-    ]
-    for p in match_properties:
-        ref_property = getattr(rasters[0], p)
-        if not all(getattr(raster, p) == ref_property for raster in rasters):
-            msg = f"All rasters must have the same {p}."
-            raise ValueError(msg)
+    validate_property(rasters, "crs")
     crs = rasters[0].crs
+    validate_property(rasters, "dtype")
     dtype = rasters[0].dtype
+    no_data_isnan = np.issubdtype(dtype, np.floating) and np.isnan(
+        rasters[0].no_data_value
+    )
+    validate_property(rasters, "no_data_value", is_nan=no_data_isnan)
     no_data_value = rasters[0].no_data_value
+    validate_property(rasters, "resolution")
     x_res, y_res = rasters[0].resolution
 
     merge_method = rio_merge.MERGE_METHODS[method]
