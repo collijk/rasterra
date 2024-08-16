@@ -42,6 +42,7 @@ def merge(
     no_data_value = rasters[0].no_data_value
     validate_property(rasters, "resolution")
     x_res, y_res = rasters[0].resolution
+    y_res = -y_res  # rasterio uses negative y resolution
 
     merge_method = rio_merge.MERGE_METHODS[method]
 
