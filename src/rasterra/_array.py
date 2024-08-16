@@ -470,8 +470,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             dst_crs=dst_crs,
             resampling=resampling,
         )
+        if len(new_data.shape) == 3:  # noqa: PLR2004
+            # Some operations assume and prepend a channel dimension
+            new_data = new_data[0]
         return RasterArray(
-            new_data,
+            new_data[0],
             transform,
             dst_crs,
             self.no_data_value,
