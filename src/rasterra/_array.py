@@ -70,7 +70,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def shape(self) -> tuple[int, ...]:
         """Shape of the raster."""
-        return self._ndarray.shape
+        return self._ndarray.shape  # type: ignore[no-any-return]
 
     @property
     def strides(self) -> tuple[int, ...]:
@@ -292,12 +292,12 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def width(self) -> int:
         """Width of the raster."""
-        return self._ndarray.shape[1]
+        return self._ndarray.shape[1]  # type: ignore[no-any-return]
 
     @property
     def height(self) -> int:
         """Height of the raster."""
-        return self._ndarray.shape[0]
+        return self._ndarray.shape[0]  # type: ignore[no-any-return]
 
     @property
     def x_resolution(self) -> float:
@@ -308,6 +308,11 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     def y_resolution(self) -> float:
         """Resolution in y direction."""
         return self.transform.e  # type: ignore[no-any-return]
+
+    @property
+    def resolution(self) -> tuple[float, float]:
+        """Resolution in x and y directions."""
+        return self.x_resolution, self.y_resolution
 
     def x_coordinates(self, *, center: bool = False) -> npt.NDArray[np.float64]:
         """x coordinates of the raster."""
@@ -368,19 +373,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         if self._crs is None:
             msg = "Coordinate reference system is not set."
             raise ValueError(msg)
-        resampling = _RESAMPLING_MAP[resampling]
-        new_crs = CRS.from_user_input(new_crs)
-
-        new_data, transform = reproject(
-            source=self._ndarray,
-            src_transform=self._transform,
-            src_crs=self._crs,
-            src_nodata=self._no_data_value,
+        return self.reproject(
             dst_crs=new_crs,
             resampling=resampling,
-        )
-        return RasterArray(
-            new_data[0], transform, new_crs, no_data_value=self._no_data_value
         )
 
     @property
@@ -431,48 +426,58 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
 
     def resample(self, scale: float, resampling: str = "nearest") -> "RasterArray":
         """Resample the raster."""
-        resampling = _RESAMPLING_MAP[resampling]
-
         dest_width = int(self.width * scale)
         dest_height = int(self.height * scale)
         destination = np.empty((dest_height, dest_width), dtype=self._ndarray.dtype)
-
-        new_data, transform = reproject(
-            source=self._ndarray,
-            src_transform=self._transform,
-            src_crs=self._crs,
-            src_nodata=self._no_data_value,
+        return self.reproject(
             destination=destination,
             dst_crs=self._crs,
             resampling=resampling,
-        )
-
-        return RasterArray(
-            new_data, transform, self._crs, no_data_value=self.no_data_value
         )
 
     def resample_to(
         self, target: "RasterArray", resampling: str = "nearest"
     ) -> "RasterArray":
         """Resample the raster to match the resolution of another raster."""
+        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)  # noqa: SLF001
+        return self.reproject(
+            destination=destination,
+            dst_transform=target.transform,
+            dst_crs=target._crs,  # noqa: SLF001
+            resampling=resampling,
+        )
+
+    def reproject(
+        self,
+        destination: RasterData | None = None,
+        dst_transform: Affine | None = None,
+        dst_resolution: float | tuple[float, float] | None = None,
+        dst_crs: RawCRS | None = None,
+        resampling: str = "nearest",
+    ) -> "RasterArray":
+        """Reproject the raster to match the resolution of another raster."""
         resampling = _RESAMPLING_MAP[resampling]
 
-        destination = np.empty_like(target._ndarray, dtype=self._ndarray.dtype)  # noqa: SLF001
+        dst_crs = self._crs if dst_crs is None else CRS.from_user_input(dst_crs)
         new_data, transform = reproject(
             source=self._ndarray,
             src_transform=self._transform,
             src_crs=self._crs,
             src_nodata=self._no_data_value,
             destination=destination,
-            dst_transform=target.transform,
-            dst_crs=target._crs,  # noqa: SLF001
+            dst_transform=dst_transform,
+            dst_resolution=dst_resolution,
+            dst_crs=dst_crs,
             resampling=resampling,
         )
+        if len(new_data.shape) == 3:  # noqa: PLR2004
+            # Some operations assume and prepend a channel dimension
+            new_data = new_data[0]
         return RasterArray(
             new_data,
             transform,
-            target._crs,  # noqa: SLF001
-            no_data_value=self.no_data_value,
+            dst_crs,
+            self.no_data_value,
         )
 
     def _coerce_to_shapely(
