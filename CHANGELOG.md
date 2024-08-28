@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Added
-- Added a `resolution` property to RasterArray that returns a tuple of 
+- Added a `resolution` property to RasterArray that returns a tuple of
     (x_resolution, y_resolution).
 - Added a general purpose `reproject` method that can change the crs and resolution
     simultaneously.
