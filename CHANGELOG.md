@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Added
-- Added a merge method.
+- Added a `resolution` property to RasterArray that returns a tuple of 
+    (x_resolution, y_resolution).
+- Added a general purpose `reproject` method that can change the crs and resolution
+    simultaneously.
+- Updated `resample`, `resample_to` and `to_crs` to use internal `reproject` method.
+- Added a top level merge function to merge rasters in memory.
 
 ## [0.5.14] - 2024-06-25
 ### Fixed
