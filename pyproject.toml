@@ -37,7 +37,7 @@ affine = "^2.4.0"
 shapely = "^2.0.1"
 click = "*"
 rasterio = "^1.3.9"
-matplotlib = "^3.8.1"
+matplotlib = "^3.9.2"
 geopandas = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]

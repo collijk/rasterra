@@ -70,7 +70,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def shape(self) -> tuple[int, ...]:
         """Shape of the raster."""
-        return self._ndarray.shape
+        return self._ndarray.shape  # type: ignore[no-any-return]
 
     @property
     def strides(self) -> tuple[int, ...]:
@@ -292,12 +292,12 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def width(self) -> int:
         """Width of the raster."""
-        return self._ndarray.shape[1]
+        return self._ndarray.shape[1]  # type: ignore[no-any-return]
 
     @property
     def height(self) -> int:
         """Height of the raster."""
-        return self._ndarray.shape[0]
+        return self._ndarray.shape[0]  # type: ignore[no-any-return]
 
     @property
     def x_resolution(self) -> float:
