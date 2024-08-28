@@ -46,7 +46,7 @@ def merge(
 
     merge_method = rio_merge.MERGE_METHODS[method]
 
-    left, bottom, right, top = zip(*[raster.bounds for raster in rasters], strict=False)
+    left, right, bottom, top = zip(*[raster.bounds for raster in rasters], strict=False)
     dst_w, dst_s, dst_e, dst_n = min(left), min(bottom), max(right), max(top)
 
     output_width = int(round((dst_e - dst_w) / x_res))

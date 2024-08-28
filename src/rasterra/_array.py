@@ -474,7 +474,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             # Some operations assume and prepend a channel dimension
             new_data = new_data[0]
         return RasterArray(
-            new_data[0],
+            new_data,
             transform,
             dst_crs,
             self.no_data_value,
