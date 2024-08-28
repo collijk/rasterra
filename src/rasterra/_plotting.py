@@ -99,7 +99,7 @@ def _make_hist_plot(
     ax.set_ylabel("Frequency", color="tab:blue", fontsize=14)
     ax.set_title(title, fontsize=16)
     ax2 = ax.twinx()
-    ax2.plot(bins[:-1], cdf, color="tab:orange")  # type: ignore[attr-defined]
+    ax2.plot(bins[:-1], cdf, color="tab:orange")
     ax2.set_ylabel("Cumulative frequency", color="tab:orange", fontsize=14)
     return ax
 
