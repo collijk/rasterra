@@ -29,7 +29,10 @@ class Plotter:
         vmin: float | None = None,
         vmax: float | None = None,
         under_color: str | None = None,
+        no_data_color: str | None = None,
         norm: Normalize | None = None,
+        *,
+        colorbar: bool = True,
         **kwargs: Any,
     ) -> Axes:
         if (vmin is not None or vmax is not None) and norm is not None:
@@ -45,7 +48,17 @@ class Plotter:
             show_plt = True
             ax = plt.gca()
 
-        _make_image_plot(self._data, self._mask, norm, cmap, under_color, ax, **kwargs)
+        _make_image_plot(
+            data=self._data,
+            mask=self._mask,
+            norm=norm,
+            cmap=cmap,
+            under_color=under_color,
+            no_data_color=no_data_color,
+            colorbar=colorbar,
+            ax=ax,
+            **kwargs,
+        )
 
         if show_plt:
             plt.show()
@@ -58,6 +71,7 @@ class Plotter:
         nbins: int = 50,
         cmap: str | Colormap = "viridis",
         under_color: str | None = None,
+        no_data_color: str | None = None,
     ) -> None:
         """Test a normalization of the data for plotting."""
         vmin = norm.vmin if norm.vmin is not None else self._data.min()
@@ -69,18 +83,39 @@ class Plotter:
 
         fig, axes = plt.subplots(figsize=(15, 15), ncols=2, nrows=2)
 
-        _make_hist_plot(data, nbins, "Raw data", axes[0, 0])
+        _make_hist_plot(
+            data=data,
+            nbins=nbins,
+            title="Raw data",
+            ax=axes[0, 0],
+        )
         _make_image_plot(
-            data,
-            self._mask,
-            Normalize(vmin=vmin, vmax=vmax),
-            cmap,
-            under_color,
-            axes[1, 0],
+            data=data,
+            mask=self._mask,
+            norm=Normalize(vmin=vmin, vmax=vmax),
+            cmap=cmap,
+            under_color=under_color,
+            no_data_color=no_data_color,
+            colorbar=False,
+            ax=axes[1, 0],
         )
 
-        _make_hist_plot(result, nbins, "Normalized data", axes[0, 1])
-        _make_image_plot(result, self._mask, norm, cmap, under_color, axes[1, 1])
+        _make_hist_plot(
+            data=result,
+            nbins=nbins,
+            title="Normalized data",
+            ax=axes[0, 1],
+        )
+        _make_image_plot(
+            data=result,
+            mask=self._mask,
+            norm=norm,
+            cmap=cmap,
+            under_color=under_color,
+            no_data_color=no_data_color,
+            colorbar=False,
+            ax=axes[1, 1],
+        )
 
         plt.show()
 
@@ -110,7 +145,10 @@ def _make_image_plot(
     norm: Normalize,
     cmap: str | Colormap,
     under_color: str | None,
+    no_data_color: str | None,
     ax: Axes,
+    *,
+    colorbar: bool,
     **kwargs: Any,
 ) -> Axes:
     """Plot a histogram of the data."""
@@ -121,11 +159,14 @@ def _make_image_plot(
         norm=norm,
         **kwargs,
     )
-    if under_color is not None:
-        im.cmap.set_under(under_color)  # type: ignore[union-attr]
+    im.cmap.set_extremes(  # type: ignore[union-attr]
+        bad=no_data_color,
+        under=under_color,
+    )
 
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    ax.figure.colorbar(ax.images[0], cax=cax, orientation="vertical")  # type: ignore[union-attr]
+    if colorbar:
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        ax.figure.colorbar(ax.images[0], cax=cax, orientation="vertical")  # type: ignore[union-attr]
 
     return ax
