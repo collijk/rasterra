@@ -70,7 +70,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def shape(self) -> tuple[int, ...]:
         """Shape of the raster."""
-        return self._ndarray.shape  # type: ignore[no-any-return]
+        return self._ndarray.shape
 
     @property
     def strides(self) -> tuple[int, ...]:
@@ -212,7 +212,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
             # handle RasterArray objects.
             handled_types = (np.ndarray, numbers.Number, RasterArray)
             if not isinstance(x, handled_types):
-                return NotImplemented
+                return NotImplemented  # type: ignore[no-any-return]
             if isinstance(x, RasterArray):
                 if x._crs != self._crs:  # noqa: SLF001
                     msg = "Coordinate reference systems do not match."
@@ -292,12 +292,12 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def width(self) -> int:
         """Width of the raster."""
-        return self._ndarray.shape[1]  # type: ignore[no-any-return]
+        return self._ndarray.shape[1]
 
     @property
     def height(self) -> int:
         """Height of the raster."""
-        return self._ndarray.shape[0]  # type: ignore[no-any-return]
+        return self._ndarray.shape[0]
 
     @property
     def x_resolution(self) -> float:
@@ -314,7 +314,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         """Resolution in x and y directions."""
         return self.x_resolution, self.y_resolution
 
-    def x_coordinates(self, *, center: bool = False) -> npt.NDArray[np.float64]:
+    def x_coordinates(
+        self, *, center: bool = False
+    ) -> npt.NDArray[np.floating[typing.Any]]:
         """x coordinates of the raster."""
         if center:
             return np.linspace(
@@ -329,7 +331,9 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
                 self.width,
             )
 
-    def y_coordinates(self, *, center: bool = False) -> npt.NDArray[np.float64]:
+    def y_coordinates(
+        self, *, center: bool = False
+    ) -> npt.NDArray[np.floating[typing.Any]]:
         """y coordinates of the raster."""
         if center:
             return np.linspace(

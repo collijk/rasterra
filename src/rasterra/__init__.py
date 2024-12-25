@@ -4,7 +4,7 @@ from ._merge import merge
 
 __all__ = [
     "RasterArray",
-    "load_raster",
     "load_mf_raster",
+    "load_raster",
     "merge",
 ]

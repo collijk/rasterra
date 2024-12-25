@@ -35,8 +35,8 @@ def merge(
     crs = rasters[0].crs
     validate_property(rasters, "dtype")
     dtype = rasters[0].dtype
-    no_data_isnan = np.issubdtype(dtype, np.floating) and np.isnan(
-        rasters[0].no_data_value
+    no_data_isnan = bool(
+        np.issubdtype(dtype, np.floating) and np.isnan(rasters[0].no_data_value)
     )
     validate_property(rasters, "no_data_value", is_nan=no_data_isnan)
     no_data_value = rasters[0].no_data_value

@@ -159,7 +159,7 @@ def _make_image_plot(
         norm=norm,
         **kwargs,
     )
-    im.cmap.set_extremes(  # type: ignore[union-attr]
+    im.cmap.set_extremes(
         bad=no_data_color,
         under=under_color,
     )
@@ -167,6 +167,6 @@ def _make_image_plot(
     if colorbar:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
-        ax.figure.colorbar(ax.images[0], cax=cax, orientation="vertical")  # type: ignore[union-attr]
+        ax.figure.colorbar(ax.images[0], cax=cax, orientation="vertical")
 
     return ax
