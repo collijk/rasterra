@@ -52,13 +52,13 @@ pytest = "*"
 pytest-github-actions-annotate-failures = "*"
 pytest-cov = "*"
 python-kacl = "*"
-ruff = ">=0.2.0"
+ruff = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project.scripts]
+[tool.poetry.scripts]
 my-cli = "rasterra.cli:main"
 
 [tool.ruff]
@@ -84,6 +84,9 @@ ignore = [
     "S101",     # "Use of `assert` detected"
     "ARG",      # "Unused function argument". Fixtures are often unused.
     "S105",     # "Possible hardcoded password".
+]
+"scripts/**" = [
+    "INP001",   # "Scripts are not part of a package."
 ]
 
 [tool.ruff.lint.mccabe]

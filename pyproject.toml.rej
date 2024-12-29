@@ -1,0 +1,15 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -34,9 +34,12 @@ python = ">=3.10, <4.0"
+ click = "*"
+ 
+ [tool.poetry.group.dev.dependencies]
+-mkdocstrings = {version = ">=0.23", extras = ["python"]}
++mkdocstrings = {version = "*", extras = ["python"]}
+ mkdocs-material = "*"
+ mkdocs-table-reader-plugin = "*"
++mkdocs-gen-files = "*"
++mkdocs-literate-nav = "*"
++mkdocs-section-index = "*"
+ mypy = "*"
+ pre-commit = "*"
+ pymdown-extensions = "*"
