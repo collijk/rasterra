@@ -62,6 +62,12 @@ markdown_extensions:
 plugins:
   - table-reader
   - search
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_vile: SUMMARY.md
+  - section-index
   - mkdocstrings:
       default_handler: python
       handlers:
