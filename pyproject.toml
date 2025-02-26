@@ -88,6 +88,9 @@ ignore = [
     "ARG",      # "Unused function argument". Fixtures are often unused.
     "S105",     # "Possible hardcoded password".
 ]
+"scripts/**" = [
+    "INP001",   # "Scripts are not part of a package."
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
