@@ -2,70 +2,65 @@
 name = "rasterra"
 version = "0.6.1"
 description = "A sleek, object-oriented interface designed for intuitive raster data manipulation in Python."
-
-[tool.poetry]
-
-authors = [
-    "James Collins <collijk1@gmail.com>",
-]
 license = "BSD-3-Clause"
 readme = "README.md"
+authors = [
+    {name = "James Collins", email = "collijk1@gmail.com"},
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.0",
+    "pyproj>=3.6.0",
+    "numpy>=2.0",
+    "affine>=2.4",
+    "shapely>=2.0",
+    "rasterio>=1.3.9",
+    "matplotlib",
+    "geopandas>=1.0.1",
 
-documentation = "https://collijk.github.io/rasterra"
-homepage = "https://collijk.github.io/rasterra"
-repository = "https://github.com/collijk/rasterra"
-
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Typing :: Typed",
 ]
 
+[project.urls]
+homepage = "https://collijk.github.io/rasterra"
+repository = "https://github.com/collijk/rasterra"
+documentation = "https://collijk.github.io/rasterra"
+
+[tool.poetry]
 packages = [
     { include = "rasterra", from = "src" }
 ]
+requires-poetry = ">=2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.13"
-pyproj = "^3.6.0"
-numpy = "^2.0.1"
-affine = "^2.4.0"
-shapely = "^2.0.1"
-click = "*"
-rasterio = "^1.3.9"
-matplotlib = "^3.9.2"
-geopandas = "^1.0.1"
 
-[tool.poetry.group.dev.dependencies]
-mkdocstrings = {version = ">=0.23", extras = ["python"]}
-mkdocs = "*"
-mkdocs-material = "*"
+# We keep the dev dependencies here instead of in the project optional dependencies
+# so they're still installed by default with `poetry install`.
+# They won't be installed or shipped with the package.
+ [tool.poetry.group.dev.dependencies]
+# Things we want to put a lower bound on
+mypy = "^1.15.0"
+mkdocs-material = "^9.6.0"
+pre-commit = "^4.0.0"
+pytest = "^8.3.0"
+ruff = "^0.9.7"
+# Things we don't care about the version
+mkdocstrings = {extras = ["python"], version = "*"}
 mkdocs-table-reader-plugin = "*"
-mypy = "*"
-pre-commit = "*"
+mkdocs-gen-files = "*"
+mkdocs-literate-nav = "*"
+mkdocs-section-index = "*"
 pymdown-extensions = "*"
-pytest = "*"
 pytest-github-actions-annotate-failures = "*"
 pytest-cov = "*"
 python-kacl = "*"
-ruff = ">=0.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project.scripts]
-my-cli = "rasterra.cli:main"
-
 [tool.ruff]
-target-version = "py310" # The lowest supported version
+target-version = "py312" # The lowest supported version
 
 [tool.ruff.lint]
 # By default, enable all the lint rules.
@@ -138,9 +133,3 @@ module = [
     "geopandas.*",
 ]
 ignore_missing_imports = true
-
-# [[tool.mypy.overrides]]
-# module = [
-#   "tests/my_thing/test_my_thing",
-# ]
-# disallow_untyped_defs = false
