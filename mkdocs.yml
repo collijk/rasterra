@@ -14,8 +14,8 @@ theme:
         name: Switch to light mode
 
 nav:
-  - Introduction: 'index.md'
-  - API Documentation: 'api_docs.md'
+  - Home: 'index.md'
+  - Code Reference: reference/
   - Changelog: 'changelog.md'
   - Contributing: 'contributing.md'
 
