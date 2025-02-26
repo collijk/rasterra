@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.2] - 2025-02-26
 ### Added
 - Additions to upgrade to poetry v2
+
 ### Fixed
 - Relax python requirment to >=3.12
 
@@ -96,7 +99,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Numpy array interface
 - Fixed up the CI for package maintenance, CI, and releases.
 
-[Unreleased]: https://github.com/collijk/rasterra/compare/0.6.1...master
+[Unreleased]: https://github.com/collijk/rasterra/compare/0.6.2...master
+[0.6.2]: https://github.com/collijk/rasterra/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/collijk/rasterra/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/collijk/rasterra/compare/0.5.14...0.6.0
 [0.5.14]: https://github.com/collijk/rasterra/compare/0.5.13...0.5.14
