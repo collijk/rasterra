@@ -5,11 +5,11 @@ import numpy as np
 import numpy.typing as npt
 from rasterio.crs import CRS as _CRS
 
-FilePath: typing.TypeAlias = str | bytes | os.PathLike[str]
+type FilePath = str | bytes | os.PathLike[str]
 
-RawCRS: typing.TypeAlias = _CRS | str | int | dict[str, typing.Any]
+type RawCRS = _CRS | str | int | dict[str, typing.Any]
 
-DataDtypes: typing.TypeAlias = (
+DataDtypes = (
     np.bool_
     | np.int8
     | np.int16
@@ -25,10 +25,10 @@ DataDtypes: typing.TypeAlias = (
     | np.float32
     | np.float64
 )
-SupportedDtypes: typing.TypeAlias = int | bool | float | DataDtypes
-RasterData: typing.TypeAlias = npt.NDArray[DataDtypes]
-RasterMask: typing.TypeAlias = npt.NDArray[np.bool_]
-NumpyUFuncMethod: typing.TypeAlias = typing.Literal[
+type SupportedDtypes = int | bool | float | DataDtypes
+type RasterData = npt.NDArray[DataDtypes]
+type RasterMask = npt.NDArray[np.bool_]
+type NumpyUFuncMethod = typing.Literal[
     "__call__",
     "reduce",
     "reduceat",

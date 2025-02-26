@@ -589,7 +589,7 @@ class RasterArray(np.lib.mixins.NDArrayOperatorsMixin):
         out += f"extent        : {bounds} (xmin, xmax, ymin, ymax)\n"
         out += f"crs           : {self.crs}\n"
         out += f"no_data_value : {self._no_data_value}\n"
-        out += f"size          : {self.nbytes / 1024 ** 2:.2f} MB\n"
+        out += f"size          : {self.nbytes / 1024**2:.2f} MB\n"
         out += f"dtype         : {self._ndarray.dtype}\n"
         return out
 

@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, TypeAlias
+from typing import Any
 
 import rasterio
 from rasterio.merge import merge
@@ -9,9 +9,7 @@ from shapely import Polygon
 from rasterra._array import RasterArray
 from rasterra._typing import FilePath
 
-Bounds: TypeAlias = (
-    tuple[float, float, float, float] | tuple[int, int, int, int] | Polygon
-)
+type Bounds = tuple[float, float, float, float] | tuple[int, int, int, int] | Polygon
 
 
 def load_raster(
