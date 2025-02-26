@@ -1,7 +1,10 @@
-[tool.poetry]
+[project]
 name = "rasterra"
 version = "0.6.1"
 description = "A sleek, object-oriented interface designed for intuitive raster data manipulation in Python."
+
+[tool.poetry]
+
 authors = [
     "James Collins <collijk1@gmail.com>",
 ]
