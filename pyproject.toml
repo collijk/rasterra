@@ -32,7 +32,7 @@ packages = [
 requires-poetry = ">=2.0"
 
 [tool.poetry.dependencies]
-python = ">=3.10, <3.13"
+python = ">=3.12, <4.0"
 
 # We keep the dev dependencies here instead of in the project optional dependencies
 # so they're still installed by default with `poetry install`.
