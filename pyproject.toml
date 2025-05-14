@@ -1,6 +1,6 @@
 [project]
 name = "rasterra"
-version = "0.6.2"
+version = "0.6.3"
 description = "A sleek, object-oriented interface designed for intuitive raster data manipulation in Python."
 license = "BSD-3-Clause"
 readme = "README.md"

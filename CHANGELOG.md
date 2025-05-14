@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.3] - 2025-05-14
 ### Added
 - Functionality to support loading metadata from a raster without loading the raster.
 - Functionality to support loading a single raster band from a multi-band raster.
@@ -102,7 +104,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Numpy array interface
 - Fixed up the CI for package maintenance, CI, and releases.
 
-[Unreleased]: https://github.com/collijk/rasterra/compare/0.6.2...master
+[Unreleased]: https://github.com/collijk/rasterra/compare/0.6.3...master
+[0.6.3]: https://github.com/collijk/rasterra/compare/0.6.2...0.6.3
 [0.6.2]: https://github.com/collijk/rasterra/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/collijk/rasterra/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/collijk/rasterra/compare/0.5.14...0.6.0
